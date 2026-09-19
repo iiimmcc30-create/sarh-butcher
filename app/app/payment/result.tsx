@@ -249,25 +249,11 @@ export default function PaymentResultScreen() {
   const goPrimary = useCallback(() => {
     switch (context) {
       case 'subscription':
-        router.replace('/(tabs)/profile' as never);
-        break;
       case 'listing_fee':
-        router.replace('/promote' as never);
-        break;
       case 'commission':
-        if (listingId) {
-          router.replace({ pathname: '/listing/[id]', params: { id: listingId } } as never);
-        } else {
-          router.replace('/promote' as never);
-        }
-        break;
       case 'boost':
       case 'promotion':
-        if (listingId) {
-          router.replace({ pathname: '/listing/[id]/promote', params: { id: listingId } } as never);
-        } else {
-          router.replace('/promote' as never);
-        }
+        router.replace('/butchers' as never);
         break;
       case 'butcher_order':
       case 'butcher_checkout':
@@ -286,24 +272,12 @@ export default function PaymentResultScreen() {
         }
         break;
       default:
-        router.replace('/(tabs)/profile' as never);
+        router.replace('/butchers' as never);
     }
   }, [context, listingId, paidOrderId, paidOrderNumber, paidButcherId, router, syncState]);
 
   const goSecondary = useCallback(() => {
-    if (context === 'subscription') {
-      router.replace('/subscription' as never);
-      return;
-    }
-    if (context === 'butcher_order' || context === 'butcher_checkout') {
-      router.replace('/butchers' as never);
-      return;
-    }
-    if (context === 'boost' || context === 'promotion') {
-      router.replace('/promote' as never);
-      return;
-    }
-    router.replace('/promote' as never);
+    router.replace('/butchers' as never);
   }, [context, router]);
 
   const iconTint =

@@ -112,14 +112,24 @@ describe('M1 single boot navigation source', () => {
     });
   });
 
-  it('sends authenticated users on root index to tabs', () => {
+  it('sends authenticated users on root index to butchers', () => {
     expect(
       resolveBootNavigation({
         ...base,
         isAuthenticated: true,
         firstSegment: 'index',
       }),
-    ).toEqual({ type: 'replace', href: '/(tabs)' });
+    ).toEqual({ type: 'replace', href: '/butchers' });
+  });
+
+  it('redirects leftover SARH tabs into the butcher home', () => {
+    expect(
+      resolveBootNavigation({
+        ...base,
+        isAuthenticated: true,
+        firstSegment: '(tabs)',
+      }),
+    ).toEqual({ type: 'replace', href: '/butchers' });
   });
 
   it('keeps unauthenticated users on register (no mid-flow kick)', () => {
@@ -157,7 +167,7 @@ describe('M1 single boot navigation source', () => {
         isAuthenticated: true,
         firstSegment: 'auth',
       }),
-    ).toEqual({ type: 'replace', href: '/(tabs)' });
+    ).toEqual({ type: 'replace', href: '/butchers' });
   });
 });
 

@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance } from 'react-native';
 import { applyThemeScheme, type ColorScheme } from './theme';
 
-export const THEME_STORAGE_KEY = 'safat_theme_preference';
+export const THEME_STORAGE_KEY = 'butcherapp_theme_preference';
 export type ThemePreference = 'system' | 'light' | 'dark';
 
 export function resolveScheme(preference: ThemePreference | null): ColorScheme {

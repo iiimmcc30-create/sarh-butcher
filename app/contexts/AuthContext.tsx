@@ -88,10 +88,10 @@ export interface RegisterData {
 }
 
 const STORAGE_KEYS = {
-  ACCESS_TOKEN:  'safat_access_token',
-  REFRESH_TOKEN: 'safat_refresh_token',
-  USER:          'safat_user',
-  LAST_AUTH_OK:  'safat_last_auth_ok',
+  ACCESS_TOKEN:  'butcherapp_access_token',
+  REFRESH_TOKEN: 'butcherapp_refresh_token',
+  USER:          'butcherapp_user',
+  LAST_AUTH_OK:  'butcherapp_last_auth_ok',
 } as const;
 
 /** Proactive refresh — keeps long-lived session alive while app is installed. */
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const lastRefreshAtRef = useRef(0);
 
   const clearSession = useCallback(async () => {
-    await AsyncStorage.multiRemove([...Object.values(STORAGE_KEYS), 'safat_active_mode']);
+    await AsyncStorage.multiRemove([...Object.values(STORAGE_KEYS), 'butcherapp_active_mode']);
     setUser(null);
     setAccessToken(null);
     setLastAuthOkAt(null);
@@ -213,7 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await AsyncStorage.multiGet([
           STORAGE_KEYS.ACCESS_TOKEN,
           STORAGE_KEYS.USER,
-          'safat_active_mode',
+          'butcherapp_active_mode',
           STORAGE_KEYS.REFRESH_TOKEN,
           STORAGE_KEYS.LAST_AUTH_OK,
         ]);
@@ -286,7 +286,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // ── تبديل الوضع ────────────────────────────────────────────────────────────
   const switchMode = useCallback(async (mode: 'USER' | 'BUTCHER') => {
     setActiveMode(mode);
-    await AsyncStorage.setItem('safat_active_mode', mode);
+    await AsyncStorage.setItem('butcherapp_active_mode', mode);
   }, []);
 
   // ── إرسال OTP ─────────────────────────────────────────────────────────────

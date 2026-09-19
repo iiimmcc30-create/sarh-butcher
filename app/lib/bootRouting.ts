@@ -27,6 +27,7 @@ export function resolveBootNavigation(state: BootNavState): BootNavAction {
   const inJoin = seg === 'join';
   const inButchers = seg === 'butchers';
   const inPayment = seg === 'payment';
+  const inSarhTabs = seg === '(tabs)';
   const onRootIndex = !seg || seg === 'index';
   const marketHome = '/butchers';
 
@@ -45,7 +46,7 @@ export function resolveBootNavigation(state: BootNavState): BootNavAction {
     return { type: 'replace', href: marketHome };
   }
 
-  if (onRootIndex) {
+  if (onRootIndex || inSarhTabs) {
     return { type: 'replace', href: marketHome };
   }
 

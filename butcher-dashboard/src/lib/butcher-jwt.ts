@@ -106,6 +106,11 @@ export async function verifyButcherAccessToken(
     return { ok: false, reason: 'expired' };
   }
 
+  const issuer = process.env.JWT_ISSUER || 'malahm-sarh';
+  if (payload.iss !== issuer) {
+    return { ok: false, reason: 'malformed' };
+  }
+
   const role = String(payload.role ?? '');
   if (!BUTCHER_ROLES.has(role)) {
     return { ok: false, reason: 'forbidden_role' };
@@ -144,6 +149,7 @@ export async function signButcherAccessToken(params: {
         username: 'butcher',
         role: params.role,
         passwordVersion: 0,
+        iss: process.env.JWT_ISSUER || 'malahm-sarh',
         iat: now,
         exp: now + (params.expiresInSec ?? 3600),
       }),

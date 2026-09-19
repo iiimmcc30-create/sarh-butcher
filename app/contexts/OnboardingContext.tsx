@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-export const ONBOARDING_STORAGE_KEY = 'safat_onboarding_complete';
+export const ONBOARDING_STORAGE_KEY = 'butcherapp_onboarding_complete';
 
 type OnboardingContextValue = {
   isComplete: boolean | null;

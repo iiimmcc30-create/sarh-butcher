@@ -50,9 +50,11 @@ describe('admin sidebar routes stay under /admin basePath', () => {
     expect(sidebar).toContain('href={href}');
     expect(sidebar).not.toContain('href={withAdminBase(href)}');
     expect(nav).toContain("href: '/users'");
-    expect(nav).toContain("href: '/listings'");
+    expect(nav).not.toContain("href: '/listings'");
     expect(nav).toContain("href: '/orders'");
     expect(nav).toContain("href: '/payments'");
+    expect(nav).toContain("href: '/butchers'");
+    expect(nav).toContain("href: '/applications'");
   });
 
   it('keeps auth redirects on /admin/login and home under basePath helpers', () => {

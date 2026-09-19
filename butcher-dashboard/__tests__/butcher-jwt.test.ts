@@ -95,6 +95,26 @@ describe('verifyButcherAccessToken', () => {
     });
   });
 
+  it('rejects a token issued by a different issuer', async () => {
+    const prev = process.env.JWT_ISSUER;
+    process.env.JWT_ISSUER = 'sarh-platform';
+    const token = await signButcherAccessToken({
+      secret: SECRET,
+      role: 'BUTCHER',
+      userId: 'butcher-user-1',
+    });
+    process.env.JWT_ISSUER = 'malahm-sarh';
+    try {
+      await expect(verifyButcherAccessToken(token, SECRET)).resolves.toEqual({
+        ok: false,
+        reason: 'malformed',
+      });
+    } finally {
+      if (prev === undefined) delete process.env.JWT_ISSUER;
+      else process.env.JWT_ISSUER = prev;
+    }
+  });
+
   it('rejects a butcher token with an empty userId', async () => {
     const token = await signButcherAccessToken({
       secret: SECRET,

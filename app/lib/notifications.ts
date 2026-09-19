@@ -10,8 +10,8 @@ import { safePush } from '@/lib/safeNavigate';
 import { API_BASE } from '@/services/api';
 import { authFetch } from '@/services/authFetch';
 
-const PUSH_TOKEN_KEY = 'safat_push_token';
-const PUSH_TOKEN_SYNCED_KEY = 'safat_push_token_synced';
+const PUSH_TOKEN_KEY = 'butcherapp_push_token';
+const PUSH_TOKEN_SYNCED_KEY = 'butcherapp_push_token_synced';
 
 let foregroundHandlerConfigured = false;
 

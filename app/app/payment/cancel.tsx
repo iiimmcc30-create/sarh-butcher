@@ -70,7 +70,7 @@ export default function PaymentCancelScreen() {
                 router.replace('/butchers' as never);
                 return;
               }
-              router.replace('/subscription' as never);
+              router.replace('/butchers' as never);
             }}
           />
           <SarhButton
@@ -82,7 +82,7 @@ export default function PaymentCancelScreen() {
                 router.replace('/butchers/my-orders' as never);
                 return;
               }
-              router.replace('/(tabs)/profile' as never);
+              router.replace('/butchers' as never);
             }}
           />
         </Stack>

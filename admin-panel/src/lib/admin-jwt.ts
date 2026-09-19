@@ -89,6 +89,11 @@ export async function verifyAdminAccessToken(
     return { ok: false, reason: 'expired' };
   }
 
+  const issuer = process.env.JWT_ISSUER || 'malahm-sarh';
+  if (payload.iss !== issuer) {
+    return { ok: false, reason: 'malformed' };
+  }
+
   const role = String(payload.role ?? '');
   if (!STAFF_ROLES.has(role)) {
     return { ok: false, reason: 'forbidden_role' };
@@ -119,6 +124,7 @@ export async function signAdminAccessToken(params: {
         username: 'admin',
         role: params.role,
         passwordVersion: 0,
+        iss: process.env.JWT_ISSUER || 'malahm-sarh',
         iat: now,
         exp: now + (params.expiresInSec ?? 3600),
       }),

@@ -3,7 +3,7 @@ import { AccessTokenRequest } from 'expo-auth-session';
 import { discovery } from 'expo-auth-session/providers/google';
 import { extractOAuthParams } from '@/lib/googleOAuthCallback';
 
-const PENDING_KEY = 'safat_google_oauth_pending';
+const PENDING_KEY = 'butcherapp_google_oauth_pending';
 
 const webClientId =
   process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID ??
