@@ -76,13 +76,13 @@ Shared Sarh account. `DEV_OTP=false`. Invalid phone `POST /api/auth/send-otp` re
 
 ## 9. Firebase
 
-Project `alsafat-d5f63` already exists. Android clients currently registered: `com.safat.app`, `com.sarh.app`. **`com.sarh.butcher` is not registered.** Sarh `FIREBASE_PRIVATE_KEY` on the server is a 29-byte stub, so Admin SDK init fails with `Invalid PEM`. No private key was written to Git. Sarh Android identity was not modified.
+Project `alsafat-d5f63` now includes Android clients `com.safat.app`, `com.sarh.app`, and `com.sarh.butcher` (`1:720837081602:android:1174ae8ca473f6f0e1051b`). Operator-supplied `google-services.json` is placed at `app/google-services.json` and `app/android/app/google-services.json` (gitignored, not committed). `app.json` points at `android.googleServicesFile`, and the `com.google.gms.google-services` Gradle plugin is enabled.
 
-Required operator action:
+Sarh Android identity was not modified. Server Admin SDK is still blocked: `/opt/sarh-butcher/secrets/firebase-private-key.pem` is a 29-byte stub (`0600`), so worker init fails with `Invalid PEM`. No private key was written or fabricated.
 
-1. In Firebase project `alsafat-d5f63`, add Android app `com.sarh.butcher` (do not change `com.sarh.app`).
-2. Download `google-services.json` for that app and supply it to EAS (do not commit).
-3. Place the real Admin SDK private key at `/opt/sarh-butcher/secrets/firebase-private-key.pem` (`0600`).
+Remaining operator action:
+
+1. Place the real Admin SDK private key at `/opt/sarh-butcher/secrets/firebase-private-key.pem` (`0600`).
 
 ## 10. Cloudinary
 
@@ -105,14 +105,11 @@ Rebuilt with `NEXT_PUBLIC_API_URL=https://malahem.sarhsa.online`.
 Configured:
 
 - package `com.sarh.butcher`
-- slug `malahm`
+- slug `malahm` / project `@sarh000/malahm` (`8e9f6143-e3cd-4ad9-97de-9b96b3dd473b`)
 - production API `https://malahem.sarhsa.online`
+- FCM `google-services.json` for `alsafat-d5f63` + `com.sarh.butcher` (gitignored)
 
-Build was **not started**. Existing Expo project `66fbef22-4a7b-45de-9280-c4dc8d7afb80` is `@sarh000/malahm-sarh`. EAS CLI refuses the build while `app.json` slug is `malahm`. Renaming that Expo project slug to `malahm` (expo.dev, account `sarh000`) is required, then:
-
-```text
-cd app && eas build --platform android --profile production
-```
+Previous production AAB without FCM: `3f6e0d16-d622-49df-9f55-165be4a3ca76`. A FCM-enabled production rebuild is the current step.
 
 Do not use `com.sarh.app` or `@sarh0/safat`.
 
@@ -154,7 +151,7 @@ Socket.IO engine handshake 200 on `https://malahem.sarhsa.online/socket.io`. Web
 
 ## 19. Notifications
 
-Server path is Firebase Admin via `/run/secrets/firebase-private-key.pem`. Init currently fails on the stub PEM. Mobile FCM needs `com.sarh.butcher` + `google-services.json`.
+Mobile FCM client config is in place (`com.sarh.butcher` in `alsafat-d5f63`). Server path is still Firebase Admin via `/run/secrets/firebase-private-key.pem`; init currently fails on the stub PEM.
 
 ## 20. Security
 
@@ -167,8 +164,8 @@ Server path is Firebase Admin via `/run/secrets/firebase-private-key.pem`. Init 
 
 ## 21. Remaining issues
 
-1. **Firebase Android + Admin key** — console action in existing project `alsafat-d5f63`.
-2. **EAS production AAB** — rename Expo project slug `malahm-sarh` → `malahm`, then start the production Android build. Also needs `google-services.json` for `com.sarh.butcher`.
+1. **Firebase Admin key** — replace the 29-byte stub PEM on the VPS. Android client `com.sarh.butcher` is registered.
+2. **EAS production AAB with FCM** — rebuild after placing `google-services.json`.
 3. **Live OTP SMS** — needs an operator test MSISDN.
 4. **Paid-order / late-capture path** — not run; would be a real charge.
 5. **Daftra OAuth client** — empty on this host; redirect URL is production-ready.

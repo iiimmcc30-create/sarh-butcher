@@ -17,6 +17,7 @@
     },
     "android": {
       "package": "com.sarh.butcher",
+      "googleServicesFile": "./google-services.json",
       "usesCleartextTraffic": false,
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW",
