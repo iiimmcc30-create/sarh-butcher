@@ -5,7 +5,7 @@
 name: sarh-butcher
 
 services:
-  postgres:
+  butcher-postgres:
     image: postgres:18-alpine
     restart: unless-stopped
     environment:
@@ -24,7 +24,7 @@ services:
     networks:
       - butcher_internal
 
-  redis:
+  butcher-redis:
     image: redis:7-alpine
     restart: unless-stopped
     command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy noeviction
@@ -52,9 +52,9 @@ services:
       SERVICE_MODE: api
       PORT: '3001'
       NODE_OPTIONS: --max-old-space-size=256
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
-      DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
-      REDIS_HOST: redis
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@butcher-postgres:5432/${POSTGRES_DB:-sarh_butcher}
+      DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@butcher-postgres:5432/${POSTGRES_DB:-sarh_butcher}
+      REDIS_HOST: butcher-redis
       REDIS_PORT: '6379'
       REDIS_ENABLED: 'true'
       REDIS_KEY_PREFIX: 'butcherapp:'
@@ -64,9 +64,9 @@ services:
       CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-sarh-butcher}
       PUBLIC_API_URL: ${PUBLIC_API_URL:-https://sarhsa.online/api/butcher}
     depends_on:
-      postgres:
+      butcher-postgres:
         condition: service_healthy
-      redis:
+      butcher-redis:
         condition: service_healthy
     ports:
       - '127.0.0.1:3101:3001'
@@ -86,16 +86,16 @@ services:
       NODE_ENV: ${NODE_ENV:-staging}
       SERVICE_MODE: worker
       NODE_OPTIONS: --max-old-space-size=192
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
-      DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
-      REDIS_HOST: redis
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@butcher-postgres:5432/${POSTGRES_DB:-sarh_butcher}
+      DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@butcher-postgres:5432/${POSTGRES_DB:-sarh_butcher}
+      REDIS_HOST: butcher-redis
       REDIS_PORT: '6379'
       REDIS_ENABLED: 'true'
       REDIS_KEY_PREFIX: 'butcherapp:'
     depends_on:
-      postgres:
+      butcher-postgres:
         condition: service_healthy
-      redis:
+      butcher-redis:
         condition: service_healthy
     mem_limit: 256m
     networks:
@@ -112,16 +112,16 @@ services:
       SERVICE_MODE: socket
       PORT: '3002'
       NODE_OPTIONS: --max-old-space-size=192
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
-      DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
-      REDIS_HOST: redis
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@butcher-postgres:5432/${POSTGRES_DB:-sarh_butcher}
+      DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@butcher-postgres:5432/${POSTGRES_DB:-sarh_butcher}
+      REDIS_HOST: butcher-redis
       REDIS_PORT: '6379'
       REDIS_ENABLED: 'true'
       REDIS_KEY_PREFIX: 'butcherapp:'
     depends_on:
-      postgres:
+      butcher-postgres:
         condition: service_healthy
-      redis:
+      butcher-redis:
         condition: service_healthy
     ports:
       - '127.0.0.1:3102:3002'
