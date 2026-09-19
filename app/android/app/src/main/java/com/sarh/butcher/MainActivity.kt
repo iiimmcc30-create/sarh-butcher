@@ -1,4 +1,4 @@
-package com.sarh.app
+package com.sarh.butcher
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

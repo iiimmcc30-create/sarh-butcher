@@ -1,4 +1,4 @@
-package com.sarh.app
+package com.sarh.butcher
 
 import android.app.Application
 import android.content.res.Configuration

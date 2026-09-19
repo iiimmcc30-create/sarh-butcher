@@ -32,8 +32,8 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="sarh"/>
-        <data android:scheme="exp+safat"/>
+        <data android:scheme="malahm"/>
+        <data android:scheme="exp+malahm-sarh"/>
       </intent-filter>
     </activity>
   </application>
