@@ -26,8 +26,16 @@ export default function LoginPage() {
 
   useEffect(() => {
     let cancelled = false;
+    const rejectedByMiddleware =
+      typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('reason') === 'session';
 
     (async () => {
+      if (rejectedByMiddleware) {
+        clearSession();
+        setCheckingSession(false);
+        return;
+      }
       const status = await tryRestoreSession();
       if (cancelled) return;
       if (status === 'restored') {
@@ -37,7 +45,11 @@ export default function LoginPage() {
       setCheckingSession(false);
     })();
 
-    fetch('/api/health', { cache: 'no-store' })
+    const apiOrigin = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+    const healthUrl = apiOrigin
+      ? `${apiOrigin}/api/health`
+      : withButcherBase('/api/health');
+    fetch(healthUrl, { cache: 'no-store' })
       .then((r) => {
         if (!cancelled) setBackendDown(!r.ok);
       })
@@ -122,7 +134,7 @@ export default function LoginPage() {
           </div>
           {backendDown && (
             <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-200">
-              تعذّر الوصول إلى واجهة سرح. تأكد أن الـ API يعمل على المنفذ 3001.
+              تعذّر الوصول إلى واجهة ملاحم سرح. تأكد أن الـ API يعمل.
             </p>
           )}
           {error && <p className="text-sm text-rose-400">{error}</p>}
@@ -131,8 +143,8 @@ export default function LoginPage() {
           </Button>
         </form>
         <p className="mt-6 text-center text-xs text-ink-muted">
-          نفس حساب الملحمة في تطبيق سرح: كلمة المرور وليست رمز SMS. رقم الجوال مثل 05xxxxxxxx أو
-          +9665xxxxxxxx. لحسابات الملاحم المعتمدة فقط، وليست لوحة إدارة المنصة.
+          كلمة مرور حساب الملحمة وليست رمز SMS. رقم الجوال مثل 05xxxxxxxx أو
+          +9665xxxxxxxx. لحسابات الملاحم المعتمدة فقط.
         </p>
       </div>
     </div>

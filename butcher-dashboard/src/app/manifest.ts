@@ -3,9 +3,9 @@ import { BUTCHER_BASE_PATH, withButcherBase } from '@/constants/butcherBasePath'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Sarh Butcher Dashboard',
-    short_name: 'Sarh',
-    description: 'لوحة إدارة الملاحم في منصة سرح: الطلبات والمنتجات والمخزون من حسابك المعتمد.',
+    name: 'ملاحم سرح — لوحة الملاحم',
+    short_name: 'ملاحم سرح',
+    description: 'لوحة إدارة الملاحم: الطلبات والمنتجات والمخزون من حسابك المعتمد.',
     lang: 'ar',
     dir: 'rtl',
     start_url: withButcherBase('/dashboard'),

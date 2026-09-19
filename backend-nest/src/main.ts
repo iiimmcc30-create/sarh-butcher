@@ -1,10 +1,6 @@
-import { config as loadEnv } from 'dotenv';
-import { resolve } from 'path';
+import './load-env';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-
-loadEnv({ path: resolve(process.cwd(), '.env') });
-loadEnv({ path: resolve(process.cwd(), '../backend/.env') });
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import {
   json,
@@ -134,10 +130,8 @@ async function bootstrap() {
 
   if (swaggerEnabled) {
     const swaggerConfig = new DocumentBuilder()
-      .setTitle('سرح API')
-      .setDescription(
-        'NestJS migration — backward compatible with React Native client',
-      )
+      .setTitle('ملاحم سرح API')
+      .setDescription('Independent Malahem Nest API')
       .setVersion('1.0.0')
       .addBearerAuth()
       .build();
@@ -148,7 +142,7 @@ async function bootstrap() {
   const port = parseInt(process.env.PORT || '3001', 10);
   app.enableShutdownHooks();
   await app.listen(port, '0.0.0.0');
-  logger.info({ port }, 'سرح NestJS API running');
+  logger.info({ port }, 'ملاحم سرح NestJS API running');
 }
 
 bootstrap().catch((err) => {

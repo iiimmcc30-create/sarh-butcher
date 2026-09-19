@@ -34,7 +34,7 @@ export function InstallPrompt() {
       setDeferred(null);
       setShowIos(false);
       setHidden(true);
-      setMessage('تم تثبيت Sarh بنجاح');
+      setMessage('تم تثبيت ملاحم سرح بنجاح');
     };
     window.addEventListener('beforeinstallprompt', onPrompt);
     window.addEventListener('appinstalled', onInstalled);
@@ -75,7 +75,7 @@ export function InstallPrompt() {
     <div className="border-b border-white/10 bg-surface-raised px-4 py-3">
       <div className="mx-auto flex max-w-3xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-ink">ثبّت سرح على جهازك</p>
+          <p className="text-sm font-medium text-ink">ثبّت ملاحم سرح على جهازك</p>
           {showIos ? (
             <p className="mt-1 text-xs text-ink-muted">
               في Safari: مشاركة ← إضافة إلى الشاشة الرئيسية
@@ -94,7 +94,7 @@ export function InstallPrompt() {
                 const choice = await deferred.userChoice;
                 if (choice.outcome === 'accepted') {
                   markInstalled();
-                  setMessage('تم تثبيت Sarh بنجاح');
+                  setMessage('تم تثبيت ملاحم سرح بنجاح');
                   setDeferred(null);
                   setHidden(true);
                 } else {

@@ -118,6 +118,33 @@ describe('validateProductionEnv', () => {
     expect(() => validateProductionEnv()).not.toThrow();
   });
 
+  it('rejects loopback Redis 6379 in production', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.DATABASE_URL = 'postgresql://u:p@localhost:5432/db';
+    process.env.JWT_SECRET = 'x'.repeat(32);
+    process.env.JWT_REFRESH_SECRET = 'y'.repeat(32);
+    process.env.TWILIO_ACCOUNT_SID = 'ACrealaccountsid012345678901234567';
+    process.env.TWILIO_AUTH_TOKEN = 'token';
+    process.env.TWILIO_VERIFY_SERVICE_SID = 'VA123';
+    process.env.NI_BASE_URL = 'https://api-gateway.ksa.ngenius-payments.com';
+    process.env.NI_OUTLET_ID = 'a13f81f3-27b4-48b6-88de-22b9ddc1e1dc';
+    process.env.NI_API_KEY = 'live_real_key_not_test';
+    process.env.NI_WEBHOOK_SECRET = 'whsec';
+    process.env.STORAGE_PROVIDER = 'cloudinary';
+    process.env.CLOUDINARY_CLOUD_NAME = 'c';
+    process.env.CLOUDINARY_API_KEY = 'k';
+    process.env.CLOUDINARY_API_SECRET = 's';
+    process.env.APP_URL = 'https://sarhsa.online';
+    process.env.CRON_SECRET = 'cron-secret-value';
+    process.env.JWT_ISSUER = 'malahm-sarh';
+    process.env.SECRETS_ENCRYPTION_KEY = 'z'.repeat(32);
+    delete process.env.REDIS_HOST;
+    delete process.env.DEV_OTP;
+    process.env.REDIS_URL = 'redis://127.0.0.1:6379';
+
+    expect(() => validateProductionEnv()).toThrow(/6379|Sarh|MALAHEM_REDIS/);
+  });
+
   it('accepts AWS_BUCKET_NAME as an alias of AWS_S3_BUCKET', () => {
     process.env.NODE_ENV = 'production';
     process.env.DATABASE_URL = 'postgresql://u:p@localhost:5432/db';
@@ -135,7 +162,7 @@ describe('validateProductionEnv', () => {
     process.env.AWS_SECRET_ACCESS_KEY = 'sk';
     process.env.AWS_BUCKET_NAME = 'sarh-media';
     delete process.env.AWS_S3_BUCKET;
-    process.env.REDIS_URL = 'redis://localhost:6379';
+    process.env.REDIS_URL = 'redis://butcher-redis:6379';
     process.env.APP_URL = 'https://sarhsa.online';
     process.env.CRON_SECRET = 'cron-secret-value';
     process.env.JWT_ISSUER = 'malahm-sarh';

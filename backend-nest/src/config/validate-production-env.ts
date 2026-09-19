@@ -1,3 +1,5 @@
+import { resolveMalahemRedisTarget } from '../redis/redis-connection';
+
 /**
  * Fail-fast production environment validation.
  * Call before NestJS bootstrap in api / worker / socket entrypoints.
@@ -94,6 +96,16 @@ export function validateProductionEnv(): void {
       !isBlank(process.env.REDIS_URL) || !isBlank(process.env.REDIS_HOST);
     if (!hasRedis) {
       missing.push('REDIS_URL or REDIS_HOST');
+    } else {
+      try {
+        resolveMalahemRedisTarget();
+      } catch (err) {
+        problems.push(
+          err instanceof Error
+            ? err.message
+            : 'Redis configuration is invalid for Malahem',
+        );
+      }
     }
   }
 

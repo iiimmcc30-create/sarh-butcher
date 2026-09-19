@@ -44,23 +44,78 @@ function parseRedisUrl(raw: string): ParsedRedisUrl | null {
   }
 }
 
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
+
+export class MalahemRedisConfigError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'MalahemRedisConfigError';
+  }
+}
+
+/**
+ * Resolve Malahem Redis. Never silently uses localhost:6379 (Sarh on this host).
+ * Docker-internal hosts may use port 6379 (the container's own Redis).
+ */
+export function resolveMalahemRedisTarget(
+  env: NodeJS.ProcessEnv = process.env,
+): ParsedRedisUrl {
+  const urlRaw = env.REDIS_URL?.trim() || env.MALAHEM_REDIS_URL?.trim() || '';
+  const fromUrl = urlRaw ? parseRedisUrl(urlRaw) : null;
+  const host = (fromUrl?.host || env.REDIS_HOST?.trim() || '').toLowerCase();
+
+  if (!host) {
+    throw new MalahemRedisConfigError(
+      'MALAHEM_REDIS_URL or REDIS_URL or REDIS_HOST is required. Refusing to default to localhost:6379 (Sarh Redis).',
+    );
+  }
+
+  let port = fromUrl?.port;
+  if (!port) {
+    const raw = env.REDIS_PORT?.trim();
+    if (raw) port = parseInt(raw, 10);
+  }
+  if (!port && !LOOPBACK_HOSTS.has(host)) {
+    // Redis URL without an explicit port — protocol default, not a host-machine fallback.
+    port = 6379;
+  }
+  if (!port) {
+    throw new MalahemRedisConfigError(
+      'REDIS_PORT is required when Redis host is localhost/127.0.0.1. Use 6380 for Malahem. Refusing silent 6379.',
+    );
+  }
+  if (!Number.isFinite(port) || port <= 0) {
+    throw new MalahemRedisConfigError(`Invalid Redis port: ${port}`);
+  }
+  if (LOOPBACK_HOSTS.has(host) && port === 6379) {
+    throw new MalahemRedisConfigError(
+      'Refusing Redis localhost:6379 — that is the Sarh instance. Set MALAHEM_REDIS_URL=redis://127.0.0.1:6380',
+    );
+  }
+
+  return {
+    host: fromUrl?.host || env.REDIS_HOST!.trim(),
+    port,
+    password: fromUrl?.password || env.REDIS_PASSWORD || undefined,
+    username: fromUrl?.username,
+  };
+}
+
 /**
  * Shared Redis connection options.
- * Prefers REDIS_URL (Render Key Value) and falls back to HOST/PORT/PASSWORD.
+ * Prefers REDIS_URL / MALAHEM_REDIS_URL, then HOST/PORT. Never defaults to 6379 on loopback.
  */
 export function redisConnection(
   db: number,
   extra: RedisOptions = {},
 ): RedisOptions {
-  const fromUrl = process.env.REDIS_URL?.trim()
-    ? parseRedisUrl(process.env.REDIS_URL.trim())
-    : null;
+  const target = resolveMalahemRedisTarget();
 
   return {
-    host: fromUrl?.host || process.env.REDIS_HOST || 'localhost',
-    port: fromUrl?.port || parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: fromUrl?.password || process.env.REDIS_PASSWORD || undefined,
-    ...(fromUrl?.username ? { username: fromUrl.username } : {}),
+    host: target.host,
+    port: target.port,
+    password: target.password,
+    ...(target.username ? { username: target.username } : {}),
     ...extra,
     db,
   };

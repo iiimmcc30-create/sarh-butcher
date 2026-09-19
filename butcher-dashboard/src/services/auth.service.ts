@@ -1,4 +1,5 @@
 import { normalizeLoginIdentifier } from '@/lib/login-identifier';
+import { withButcherBase } from '@/constants/butcherBasePath';
 import { apiClient, unwrap } from './api.client';
 import {
   ACCESS_TOKEN_KEY,
@@ -32,7 +33,13 @@ const SESSION_COOKIE_MAX_AGE = 60 * 60 * 12;
 export const NO_BUTCHER_MESSAGE = 'هذا الحساب غير مرتبط بملحمة معتمدة';
 
 export function setSessionCookie(accessToken: string) {
-  document.cookie = `${SESSION_COOKIE}=${encodeURIComponent(accessToken)}; path=/; max-age=${SESSION_COOKIE_MAX_AGE}; SameSite=Lax`;
+  const encoded = encodeURIComponent(accessToken);
+  const attrs = `max-age=${SESSION_COOKIE_MAX_AGE}; SameSite=Lax`;
+  document.cookie = `${SESSION_COOKIE}=${encoded}; path=/; ${attrs}`;
+  const base = withButcherBase('/').replace(/\/$/, '') || '/';
+  if (base !== '/') {
+    document.cookie = `${SESSION_COOKIE}=${encoded}; path=${base}; ${attrs}`;
+  }
 }
 
 export function persistTokens(data: LoginResult) {
@@ -52,6 +59,10 @@ export function clearSession() {
   localStorage.removeItem(USER_KEY);
   localStorage.removeItem(BUTCHER_KEY);
   document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0`;
+  const base = withButcherBase('/').replace(/\/$/, '') || '/';
+  if (base !== '/') {
+    document.cookie = `${SESSION_COOKIE}=; path=${base}; max-age=0`;
+  }
 }
 
 export async function platformLogin(login: string, password: string): Promise<LoginResult> {

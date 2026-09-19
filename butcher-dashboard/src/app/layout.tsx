@@ -11,9 +11,9 @@ const plex = IBM_Plex_Sans_Arabic({
 });
 
 export const metadata: Metadata = {
-  title: 'سرح | لوحة الملاحم',
-  description: 'لوحة إدارة الملاحم في منصة سرح: الطلبات والمنتجات والمخزون من حسابك المعتمد.',
-  applicationName: 'Sarh',
+  title: 'ملاحم سرح | لوحة الملاحم',
+  description: 'لوحة إدارة الملاحم: الطلبات والمنتجات والمخزون من حسابك المعتمد.',
+  applicationName: 'ملاحم سرح',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Sarh',
+    title: 'ملاحم سرح',
   },
   formatDetection: { telephone: false },
 };

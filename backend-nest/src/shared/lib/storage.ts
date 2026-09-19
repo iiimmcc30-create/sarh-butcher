@@ -55,7 +55,9 @@ export type LocalUploadSlot = {
 export type UploadSlot = S3UploadSlot | CloudinaryUploadSlot | LocalUploadSlot;
 
 const BUCKET =
-  process.env.AWS_S3_BUCKET || process.env.AWS_BUCKET_NAME || 'safat-uploads';
+  process.env.AWS_S3_BUCKET ||
+  process.env.AWS_BUCKET_NAME ||
+  'sarh-butcher-uploads';
 const CDN_URL = process.env.AWS_CLOUDFRONT_URL || '';
 const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || '';
 const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY || '';

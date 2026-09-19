@@ -19,7 +19,9 @@ describe('butcher dashboard middleware', () => {
   it('redirects protected pages to /login when cookie missing', async () => {
     const res = await middleware(request('/dashboard'));
     expect(res.status).toBe(307);
-    expect(res.headers.get('location')).toBe('http://localhost:3003/login');
+    expect(res.headers.get('location')).toBe(
+      'http://localhost:3003/login?reason=session',
+    );
   });
 
   it('allows /login without token', async () => {

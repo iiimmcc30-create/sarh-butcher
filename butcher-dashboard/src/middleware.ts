@@ -16,14 +16,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const verified = await verifyButcherAccessToken(
-    token,
-    process.env.JWT_SECRET,
-  );
+  const secret =
+    process.env.BUTCHER_JWT_SECRET?.trim() || process.env.JWT_SECRET?.trim();
+  const verified = await verifyButcherAccessToken(token, secret);
   if (!verified.ok) {
     // Do not use `new URL('/login', request.url)` — that ignores basePath and
     // sends browsers to https://host/login (Expo unmatched), not /butcher/login.
-    return NextResponse.redirect(new URL(withButcherBase('/login'), request.url));
+    // reason=session stops login-page restore from bouncing back here.
+    const login = new URL(withButcherBase('/login'), request.url);
+    login.searchParams.set('reason', 'session');
+    return NextResponse.redirect(login);
   }
 
   return NextResponse.next();

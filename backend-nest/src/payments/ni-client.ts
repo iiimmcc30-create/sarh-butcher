@@ -8,6 +8,7 @@ import {
   NI_RETRY_BASE_DELAY_MS,
 } from '../integrations/constants/integration.constants';
 import { withExponentialBackoff } from '../integrations/utils/retry.util';
+import { INTERNAL_MERCHANT_PREFIXES } from './merchant-ref';
 
 function isAxiosTimeout(err: unknown): boolean {
   return (
@@ -162,15 +163,6 @@ function extractCheckoutUrl(data: Record<string, unknown>): string | undefined {
     (data.url as string | undefined)
   );
 }
-
-/** Sarh internal merchant refs (Payment.orderId) — not valid in NI GET /orders/{ref}. */
-const INTERNAL_MERCHANT_PREFIXES = [
-  'SFAT',
-  'FTR',
-  'PRM',
-  'PIN',
-  'BOTH',
-] as const;
 
 const NI_ORDER_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

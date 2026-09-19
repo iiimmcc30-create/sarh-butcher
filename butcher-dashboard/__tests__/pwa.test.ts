@@ -14,8 +14,8 @@ describe('butcher dashboard PWA manifest', () => {
   const data = manifest();
 
   it('declares installable standalone metadata', () => {
-    expect(data.name).toBe('Sarh Butcher Dashboard');
-    expect(data.short_name).toBe('Sarh');
+    expect(data.name).toBe('ملاحم سرح — لوحة الملاحم');
+    expect(data.short_name).toBe('ملاحم سرح');
     expect(data.lang).toBe('ar');
     expect(data.dir).toBe('rtl');
     expect(data.display).toBe('standalone');
@@ -25,7 +25,7 @@ describe('butcher dashboard PWA manifest', () => {
     expect(data.background_color).toBe('#0B1622');
   });
 
-  it('includes required icon sizes from the official Sarh mark', () => {
+  it('includes required icon sizes from the official Malahem mark', () => {
     const sizes = (data.icons ?? []).map((icon) => icon.sizes);
     expect(sizes).toEqual(expect.arrayContaining(['192x192', '512x512', '180x180']));
   });

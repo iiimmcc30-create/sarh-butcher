@@ -99,11 +99,14 @@ describe('NI payment state classification', () => {
     it('rejects internal merchant refs', () => {
       expect(isNiOrderUuid('FTR-4916FD-MSPXSTSH')).toBe(false);
       expect(isNiOrderUuid('SFAT-U1-TEST')).toBe(false);
+      expect(isNiOrderUuid('MALAHM-U1-TEST')).toBe(false);
     });
   });
 
   describe('isInternalMerchantOrderReference', () => {
-    it('detects Sarh merchant order prefixes', () => {
+    it('detects Malahem and legacy merchant order prefixes', () => {
+      expect(isInternalMerchantOrderReference('MALAHM-ABC123-TS')).toBe(true);
+      expect(isInternalMerchantOrderReference('SFAT-U1-TEST')).toBe(true);
       expect(isInternalMerchantOrderReference('FTR-4916FD-MSPXSTSH')).toBe(
         true,
       );

@@ -32,15 +32,14 @@ import { redactSensitive } from '../integrations/utils/redact.util';
 import { SocketEmitService } from '../gateway/services/socket-emit.service';
 import { Sentry } from '../shared/lib/sentry';
 import { publicSiteUrl } from '../lib/public-urls';
+import { buildMerchantOrderReference } from './merchant-ref';
 
 function publicAppUrl(): string {
   return publicSiteUrl();
 }
 
 function buildNIOrderReference(userId: string): string {
-  const ts = Date.now().toString(36).toUpperCase();
-  const uid = userId.replace(/-/g, '').slice(0, 8).toUpperCase();
-  return `SFAT-${uid}-${ts}`;
+  return buildMerchantOrderReference(userId);
 }
 
 function verifyNISignature(

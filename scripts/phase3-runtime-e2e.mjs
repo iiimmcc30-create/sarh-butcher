@@ -592,6 +592,20 @@ async function main() {
     String(afterLogout.status),
   );
 
+  const paymentBridge = await fetch(`${API}/payment/result?paymentId=probe&context=butcher_checkout`);
+  const paymentBridgeHtml = await paymentBridge.text();
+  rec(
+    'Payment bridge GET /payment/result',
+    paymentBridge.status === 200 && paymentBridgeHtml.includes('malahm://'),
+    String(paymentBridge.status),
+  );
+  const paymentApiMiss = await req('/api/payment/result?paymentId=probe');
+  rec(
+    'GET /api/payment/result is not the NI callback (404 expected)',
+    paymentApiMiss.status === 404,
+    String(paymentApiMiss.status),
+  );
+
   // Redis isolation
   const keys6380 = execSync('redis-cli -p 6380 KEYS "*"', { encoding: 'utf8' })
     .trim()

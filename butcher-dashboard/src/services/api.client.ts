@@ -59,14 +59,19 @@ apiClient.interceptors.response.use(
   (res) => res,
   (error: AxiosError<ApiEnvelope<unknown>>) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
+      const loginPath = withButcherBase('/login');
+      const onLogin = window.location.pathname.startsWith(loginPath);
       localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       localStorage.removeItem(BUTCHER_KEY);
       document.cookie = `${SESSION_COOKIE}=; path=/; max-age=0`;
-      const loginPath = withButcherBase('/login');
-      if (!window.location.pathname.startsWith(loginPath)) {
-        window.location.href = loginPath;
+      const base = loginPath.replace(/\/login\/?$/, '') || '/';
+      if (base !== '/') {
+        document.cookie = `${SESSION_COOKIE}=; path=${base}; max-age=0`;
+      }
+      if (!onLogin) {
+        window.location.href = `${loginPath}?reason=session`;
       }
     }
     return Promise.reject(error);

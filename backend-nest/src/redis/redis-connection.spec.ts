@@ -14,6 +14,7 @@ import {
 describe('redisConnection', () => {
   const keys = [
     'REDIS_URL',
+    'MALAHEM_REDIS_URL',
     'REDIS_HOST',
     'REDIS_PORT',
     'REDIS_PASSWORD',
@@ -59,9 +60,42 @@ describe('redisConnection', () => {
       db: 2,
     });
   });
+
+  it('aliases MALAHEM_REDIS_URL when REDIS_URL is absent', () => {
+    process.env.MALAHEM_REDIS_URL = 'redis://butcher-redis:6379';
+    expect(redisConnection(0)).toMatchObject({
+      host: 'butcher-redis',
+      port: 6379,
+      db: 0,
+    });
+  });
+
+  it('fails fast when Redis env is missing (no localhost:6379)', () => {
+    expect(() => redisConnection(0)).toThrow(/MALAHEM_REDIS_URL/);
+  });
+
+  it('refuses loopback port 6379 (Sarh Redis on this host)', () => {
+    process.env.REDIS_URL = 'redis://127.0.0.1:6379';
+    expect(() => redisConnection(0)).toThrow(/localhost:6379|127\.0\.0\.1:6379|Sarh/);
+    process.env.REDIS_URL = 'redis://localhost:6379';
+    expect(() => redisConnection(0)).toThrow(/Sarh|6379/);
+  });
+
+  it('accepts explicit Malahem loopback 6380', () => {
+    process.env.REDIS_HOST = '127.0.0.1';
+    process.env.REDIS_PORT = '6380';
+    expect(redisConnection(0)).toMatchObject({ host: '127.0.0.1', port: 6380 });
+  });
 });
 
 describe('getSharedRedisClient', () => {
+  beforeAll(() => {
+    if (!process.env.REDIS_URL && !process.env.REDIS_HOST) {
+      process.env.REDIS_HOST = '127.0.0.1';
+      process.env.REDIS_PORT = '6380';
+    }
+  });
+
   afterEach(async () => {
     await closeSharedRedisClients();
   });
