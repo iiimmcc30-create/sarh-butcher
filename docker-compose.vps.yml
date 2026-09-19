@@ -48,7 +48,7 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-staging}
       SERVICE_MODE: api
       PORT: '3001'
       NODE_OPTIONS: --max-old-space-size=256
@@ -83,7 +83,7 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-staging}
       SERVICE_MODE: worker
       NODE_OPTIONS: --max-old-space-size=192
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
@@ -108,7 +108,7 @@ services:
     env_file:
       - .env
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-staging}
       SERVICE_MODE: socket
       PORT: '3002'
       NODE_OPTIONS: --max-old-space-size=192
