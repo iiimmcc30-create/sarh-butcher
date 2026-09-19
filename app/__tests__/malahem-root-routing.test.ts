@@ -31,4 +31,10 @@ describe('malahem public root routing', () => {
     expect(vps).toContain('image: sarh-butcher-web:latest');
     expect(vps).not.toContain('sarh-web:latest');
   });
+
+  it('keeps inner web redirects relative so HTTPS is not dropped', () => {
+    const web = readFileSync(join(__dirname, '../nginx.web.conf'), 'utf8');
+    expect(web).toContain('absolute_redirect off');
+    expect(web).toContain('port_in_redirect off');
+  });
 });
