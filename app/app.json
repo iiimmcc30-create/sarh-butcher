@@ -1,0 +1,96 @@
+{
+  "expo": {
+    "name": "ملاحم سرح",
+    "slug": "malahm-sarh",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "malahm",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sarh.butcher",
+      "icon": "./assets/images/icon.png",
+      "infoPlist": {
+        "CFBundleDisplayName": "ملاحم سرح"
+      }
+    },
+    "android": {
+      "package": "com.sarh.butcher",
+      "usesCleartextTraffic": false,
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ],
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.WAKE_LOCK",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#040C0E"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-dev-client",
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-circle.png",
+          "imageWidth": 280,
+          "resizeMode": "contain",
+          "backgroundColor": "#040C0E",
+          "dark": {
+            "image": "./assets/images/splash-circle.png",
+            "imageWidth": 280,
+            "resizeMode": "contain",
+            "backgroundColor": "#040C0E"
+          }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "نحتاج الوصول لمكتبة الصور لتغيير صورة البروفايل والغلاف"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "نحتاج موقعك لتحديد مكان الملحمة على الخريطة"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#040C0E",
+          "defaultChannel": "default",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
+      "expo-asset",
+      "expo-video"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
