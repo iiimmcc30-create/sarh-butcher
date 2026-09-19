@@ -129,6 +129,8 @@ export const updateButcherSchema = z
     country: countrySchema.optional(),
     type: z.enum(['regular', 'verified']).optional(),
     isOpen: z.boolean().optional(),
+    /** Local replacement for SARH plan permission storeCommission. */
+    commissionExempt: z.boolean().optional(),
   })
   .strict()
   .refine((d) => Object.keys(d).length > 0, { message: 'empty_update' });

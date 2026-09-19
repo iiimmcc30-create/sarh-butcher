@@ -16,7 +16,7 @@ function browserApiBase(): string {
   return '/api';
 }
 
-/** Browser uses /api locally (Next rewrite) or /api/butcher on the shared host. */
+/** Browser uses /api locally (Next rewrite). /api/butcher is optional path-prefix compat. */
 export const API_URL =
   typeof window !== 'undefined' ? '' : SERVER_API_URL;
 

@@ -1,7 +1,7 @@
 const API_PORT = 3001;
 const SOCKET_PORT = 3002;
-const PRODUCTION_API = 'https://sarhsa.online';
-const PRODUCTION_SOCKET = 'https://sarhsa.online';
+const PRODUCTION_API = process.env.EXPO_PUBLIC_API_URL?.trim() || '';
+const PRODUCTION_SOCKET = process.env.EXPO_PUBLIC_SOCKET_URL?.trim() || '';
 // Back-compat alias — Railway is decommissioned.
 const RAILWAY_API = PRODUCTION_API;
 
@@ -87,12 +87,12 @@ async function resolveDevApiUrlsAsync(lanIp) {
 
   if (loopbackOk && lanIp) {
     console.warn(
-      '[dev-api] Backend on localhost only — phone cannot reach it. Using production (Render).',
+      '[dev-api] Backend on localhost only — phone cannot reach it. Set EXPO_PUBLIC_API_URL to a reachable Malahem origin.',
     );
     return {
-      apiUrl: PRODUCTION_API,
-      socketUrl: PRODUCTION_SOCKET,
-      mode: 'render-fallback',
+      apiUrl: loopbackApi,
+      socketUrl: envSocket || `http://127.0.0.1:${SOCKET_PORT}`,
+      mode: 'localhost',
     };
   }
 
@@ -104,11 +104,13 @@ async function resolveDevApiUrlsAsync(lanIp) {
     };
   }
 
-  console.warn('[dev-api] No local backend — using production (Render).');
+  console.warn(
+    '[dev-api] No local backend — set EXPO_PUBLIC_API_URL / EXPO_PUBLIC_SOCKET_URL. No Sarh fallback.',
+  );
   return {
-    apiUrl: PRODUCTION_API,
-    socketUrl: PRODUCTION_SOCKET,
-    mode: 'render-fallback',
+    apiUrl: envApi || loopbackApi,
+    socketUrl: envSocket || `http://127.0.0.1:${SOCKET_PORT}`,
+    mode: 'localhost',
   };
 }
 

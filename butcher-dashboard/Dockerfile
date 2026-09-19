@@ -9,8 +9,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p public
 
-ARG NEXT_PUBLIC_API_URL=https://sarhsa.online/api/butcher
-ARG NEXT_PUBLIC_SOCKET_URL=https://sarhsa.online
+# No baked production domain. Pass MALAHEM_API_URL / NEXT_PUBLIC_* at build.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_SOCKET_URL
 ARG NEXT_PUBLIC_BUTCHER_BASE_PATH=/butcher
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL

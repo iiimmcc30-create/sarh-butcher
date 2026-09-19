@@ -1,6 +1,6 @@
-# ملاحم سرح — production-shaped stack (STAGING first).
+# ملاحم سرح — independent production-shaped stack (STAGING first).
 # Do NOT point this file at SARH postgres/redis/NI webhook/JWT.
-# Do NOT deploy to production in Phase 1.
+# Do NOT attach to sarh_internal. Do NOT deploy from this cleanup.
 name: sarh-butcher
 
 services:
@@ -19,7 +19,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - butcher_internal
+      - malahem_internal
 
   redis:
     image: redis:7-alpine
@@ -33,7 +33,7 @@ services:
       timeout: 3s
       retries: 10
     networks:
-      - butcher_internal
+      - malahem_internal
 
   api:
     build:
@@ -56,7 +56,10 @@ services:
       APP_DEEP_LINK_SCHEME: ${APP_DEEP_LINK_SCHEME:-malahm}
       APP_ANDROID_PACKAGE: ${APP_ANDROID_PACKAGE:-com.sarh.butcher}
       CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-sarh-butcher}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3001}
+      APP_URL: ${MALAHEM_APP_URL:-${APP_URL:?set MALAHEM_APP_URL or APP_URL}}
+      PUBLIC_API_URL: ${MALAHEM_API_URL:-${PUBLIC_API_URL:?set MALAHEM_API_URL or PUBLIC_API_URL}}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?set ALLOWED_ORIGINS}
+      SKIP_MIGRATIONS: ${SKIP_MIGRATIONS:-true}
     depends_on:
       postgres:
         condition: service_healthy
@@ -65,7 +68,7 @@ services:
     ports:
       - '127.0.0.1:3001:3001'
     networks:
-      butcher_internal:
+      malahem_internal:
         aliases: [api, butcher-api]
     entrypoint: ['./docker-entrypoint.sh']
 
@@ -89,7 +92,7 @@ services:
       redis:
         condition: service_healthy
     networks:
-      - butcher_internal
+      - malahem_internal
     entrypoint: ['./docker-entrypoint.sh']
 
   socket:
@@ -115,7 +118,7 @@ services:
     ports:
       - '127.0.0.1:3002:3002'
     networks:
-      butcher_internal:
+      malahem_internal:
         aliases: [socket, butcher-socket]
     entrypoint: ['./docker-entrypoint.sh']
 
@@ -124,31 +127,34 @@ services:
       context: ./admin-panel
       args:
         NEXT_PUBLIC_ADMIN_BASE_PATH: /admin
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://sarhsa.online/api/butcher}
+        NEXT_PUBLIC_API_URL: ${MALAHEM_API_URL:-${NEXT_PUBLIC_API_URL:?set MALAHEM_API_URL or NEXT_PUBLIC_API_URL}}
+        NEXT_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${NEXT_PUBLIC_SOCKET_URL:?set MALAHEM_APP_URL or NEXT_PUBLIC_SOCKET_URL}}
     restart: unless-stopped
     environment:
       PORT: '3000'
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
+      NEXT_PUBLIC_API_URL: ${MALAHEM_API_URL:-${NEXT_PUBLIC_API_URL}}
+      NEXT_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${NEXT_PUBLIC_SOCKET_URL}}
       NEXT_PUBLIC_ADMIN_BASE_PATH: /admin
     networks:
-      - butcher_internal
+      - malahem_internal
 
   butcher:
     build:
       context: ./butcher-dashboard
       args:
         NEXT_PUBLIC_BUTCHER_BASE_PATH: /butcher
+        NEXT_PUBLIC_API_URL: ${MALAHEM_API_URL:-${NEXT_PUBLIC_API_URL:?set MALAHEM_API_URL or NEXT_PUBLIC_API_URL}}
+        NEXT_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${NEXT_PUBLIC_SOCKET_URL:?set MALAHEM_APP_URL or NEXT_PUBLIC_SOCKET_URL}}
     restart: unless-stopped
     environment:
       PORT: '3003'
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
+      NEXT_PUBLIC_API_URL: ${MALAHEM_API_URL:-${NEXT_PUBLIC_API_URL}}
+      NEXT_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${NEXT_PUBLIC_SOCKET_URL}}
       NEXT_PUBLIC_BUTCHER_BASE_PATH: /butcher
     networks:
-      - butcher_internal
+      - malahem_internal
 
   nginx:
     image: nginx:1.27-alpine
@@ -166,15 +172,14 @@ services:
       - ./nginx/admin-location.conf:/etc/nginx/includes/admin-location.conf:ro
       - ./nginx/payment-bridge.conf:/etc/nginx/includes/payment-bridge.conf:ro
       - ./nginx/butcher-api-location.conf:/etc/nginx/includes/butcher-api-location.conf:ro
-      - ./nginx/web-location.conf:/etc/nginx/includes/web-location.conf:ro
       - ./nginx/ssl-redirect.conf:/etc/nginx/includes/ssl-redirect.conf:ro
     networks:
-      - butcher_internal
+      - malahem_internal
 
 volumes:
   butcher_postgres_data:
   butcher_redis_data:
 
 networks:
-  butcher_internal:
+  malahem_internal:
     driver: bridge

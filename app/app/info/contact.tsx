@@ -24,18 +24,6 @@ const CHANNELS = [
     value: '+966 591 298 136',
     href: 'https://wa.me/966591298136',
   },
-  {
-    icon: 'mail',
-    label: 'البريد الإلكتروني',
-    value: 'sarh@sarhsa.online',
-    href: 'mailto:sarh@sarhsa.online',
-  },
-  {
-    icon: 'globe-outline',
-    label: 'الموقع الإلكتروني',
-    value: 'sarhsa.online',
-    href: 'https://sarhsa.online',
-  },
 ];
 
 export default function ContactScreen() {
@@ -51,9 +39,9 @@ export default function ContactScreen() {
       return;
     }
     setSending(true);
-    const subject = encodeURIComponent(`رسالة من ${name} - تطبيق سرح`);
+    const subject = encodeURIComponent(`رسالة من ${name} - تطبيق ملاحم سرح`);
     const body = encodeURIComponent(`الاسم: ${name}\n\n${message}`);
-    await Linking.openURL(`mailto:sarh@sarhsa.online?subject=${subject}&body=${body}`);
+    await Linking.openURL(`https://wa.me/966591298136?text=${body}%0A%0A${subject}`);
     setSending(false);
   };
 

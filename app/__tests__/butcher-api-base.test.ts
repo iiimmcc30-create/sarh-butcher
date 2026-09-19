@@ -6,13 +6,14 @@ function src(rel: string): string {
 }
 
 describe('independent butcher API base', () => {
-  it('does not use https://sarhsa.online/api as the generic mobile base', () => {
+  it('does not bake sarhsa.online or generic Sarh /api into mobile config', () => {
     const devHost = src('services/devHost.ts');
     const eas = src('eas.json');
+    expect(devHost).not.toMatch(/sarhsa\.online/);
     expect(devHost).not.toMatch(/sarhsa\.online\/api['"`]/);
-    expect(eas).not.toContain('https://sarhsa.online/api"');
-    expect(eas).toContain('https://sarhsa.online/api/butcher');
-    expect(eas).toContain('/api/butcher/socket.io');
+    expect(eas).not.toContain('sarhsa.online');
+    expect(eas).not.toContain('/api/butcher');
+    expect(eas).toContain('/socket.io');
   });
 
   it('keeps local development on isolated ports', () => {
@@ -21,9 +22,10 @@ describe('independent butcher API base', () => {
     expect(eas).toContain('http://localhost:3002');
   });
 
-  it('isolates production sockets from SARH /socket.io', () => {
+  it('defaults sockets to /socket.io and only uses /api/butcher as path-prefix compat', () => {
     const socket = src('lib/socket.ts');
-    expect(socket).toContain('/api/butcher/socket.io');
+    expect(socket).toContain("return '/api/butcher/socket.io'");
+    expect(socket).toContain("PRODUCTION_SOCKET_PATH || '/socket.io'");
     expect(socket).toContain('path: resolveSocketPath()');
   });
 });

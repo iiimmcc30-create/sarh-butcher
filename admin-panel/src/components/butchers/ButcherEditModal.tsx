@@ -31,6 +31,7 @@ type FormState = {
   lng: string;
   type: "regular" | "verified";
   isOpen: boolean;
+  commissionExempt: boolean;
 };
 
 const EMPTY: FormState = {
@@ -55,6 +56,7 @@ const EMPTY: FormState = {
   lng: "",
   type: "regular",
   isOpen: true,
+  commissionExempt: false,
 };
 
 function str(v: unknown) {
@@ -117,6 +119,7 @@ export function ButcherEditModal({ butcherId, open, onClose, onSaved }: Props) {
           lng: b.lng == null ? "" : String(b.lng),
           type: b.type === "verified" ? "verified" : "regular",
           isOpen: Boolean(b.isOpen),
+          commissionExempt: Boolean(b.commissionExempt),
         });
       } catch (e: unknown) {
         if (!cancelled)
@@ -167,6 +170,7 @@ export function ButcherEditModal({ butcherId, open, onClose, onSaved }: Props) {
         closeTime: form.closeTime.trim(),
         type: form.type,
         isOpen: form.isOpen,
+        commissionExempt: form.commissionExempt,
         logo: form.logo.trim() || null,
         cover: form.cover.trim() || null,
         bioAr: form.bioAr.trim() || null,
@@ -436,6 +440,18 @@ export function ButcherEditModal({ butcherId, open, onClose, onSaved }: Props) {
                   onChange={(e) => setField("isOpen", e.target.checked)}
                 />
                 مفتوحة الآن
+              </label>
+            </div>
+            <div className="flex items-end sm:col-span-2">
+              <label className="flex items-center gap-2 text-sm text-slate-200">
+                <input
+                  type="checkbox"
+                  checked={form.commissionExempt}
+                  onChange={(e) =>
+                    setField("commissionExempt", e.target.checked)
+                  }
+                />
+                إعفاء من عمولة الطلب 10%
               </label>
             </div>
           </div>

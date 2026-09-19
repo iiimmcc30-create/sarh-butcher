@@ -1,4 +1,4 @@
-/** Empty in local/dev; `/butcher` when served on sarhsa.online/butcher. */
+/** Empty in local/dev; `/butcher` when served under a path prefix. */
 export const BUTCHER_BASE_PATH = (
   process.env.NEXT_PUBLIC_BUTCHER_BASE_PATH || ''
 ).replace(/\/$/, '');

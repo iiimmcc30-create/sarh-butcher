@@ -1,7 +1,6 @@
-# ملاحم سرح — Hostinger edge stack on the shared sarhsa.online VPS.
-# Isolated Postgres/Redis/API/Worker/Socket. Does NOT run SARH services.
-# Does NOT publish :3001/:3002 (those belong to SARH).
-# Attach api/socket to the existing sarh_internal network for nginx only.
+# ملاحم سرح — independent VPS stack. Does NOT join sarh_internal.
+# All services attach only to malahem_internal.
+# Public URLs must come from MALAHEM_* / PUBLIC_* env — no baked domain.
 name: sarh-butcher
 
 services:
@@ -22,7 +21,7 @@ services:
       retries: 10
     mem_limit: 192m
     networks:
-      - butcher_internal
+      - malahem_internal
 
   butcher-redis:
     image: redis:7-alpine
@@ -37,7 +36,8 @@ services:
       retries: 10
     mem_limit: 80m
     networks:
-      - butcher_internal
+      malahem_internal:
+        aliases: [redis]
 
   butcher-api:
     build:
@@ -62,7 +62,10 @@ services:
       APP_DEEP_LINK_SCHEME: malahm
       APP_ANDROID_PACKAGE: com.sarh.butcher
       CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-sarh-butcher}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-https://sarhsa.online/api/butcher}
+      APP_URL: ${MALAHEM_APP_URL:-${APP_URL:?set MALAHEM_APP_URL or APP_URL}}
+      PUBLIC_API_URL: ${MALAHEM_API_URL:-${PUBLIC_API_URL:?set MALAHEM_API_URL or PUBLIC_API_URL}}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?set ALLOWED_ORIGINS}
+      SKIP_MIGRATIONS: ${SKIP_MIGRATIONS:-true}
     depends_on:
       butcher-postgres:
         condition: service_healthy
@@ -72,9 +75,8 @@ services:
       - '127.0.0.1:3101:3001'
     mem_limit: 320m
     networks:
-      butcher_internal:
-      sarh_internal:
-        aliases: [butcher-api]
+      malahem_internal:
+        aliases: [api, butcher-api]
     entrypoint: ['./docker-entrypoint.sh']
 
   worker:
@@ -99,7 +101,7 @@ services:
         condition: service_healthy
     mem_limit: 256m
     networks:
-      - butcher_internal
+      - malahem_internal
     entrypoint: ['./docker-entrypoint.sh']
 
   butcher-socket:
@@ -127,18 +129,77 @@ services:
       - '127.0.0.1:3102:3002'
     mem_limit: 224m
     networks:
-      butcher_internal:
-      sarh_internal:
-        aliases: [butcher-socket]
+      malahem_internal:
+        aliases: [socket, butcher-socket]
     entrypoint: ['./docker-entrypoint.sh']
+
+  admin:
+    build:
+      context: ./admin-panel
+      args:
+        NEXT_PUBLIC_ADMIN_BASE_PATH: /admin
+        NEXT_PUBLIC_API_URL: ${MALAHEM_API_URL:-${NEXT_PUBLIC_API_URL:?set MALAHEM_API_URL or NEXT_PUBLIC_API_URL}}
+        NEXT_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${NEXT_PUBLIC_SOCKET_URL:?set MALAHEM_APP_URL or NEXT_PUBLIC_SOCKET_URL}}
+    restart: unless-stopped
+    environment:
+      PORT: '3000'
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      NEXT_PUBLIC_API_URL: ${MALAHEM_API_URL:-${NEXT_PUBLIC_API_URL}}
+      NEXT_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${NEXT_PUBLIC_SOCKET_URL}}
+      NEXT_PUBLIC_ADMIN_BASE_PATH: /admin
+    ports:
+      - '127.0.0.1:3100:3000'
+    networks:
+      - malahem_internal
+    profiles: ['frontends']
+
+  butcher:
+    build:
+      context: ./butcher-dashboard
+      args:
+        NEXT_PUBLIC_BUTCHER_BASE_PATH: /butcher
+        NEXT_PUBLIC_API_URL: ${MALAHEM_API_URL:-${NEXT_PUBLIC_API_URL:?set MALAHEM_API_URL or NEXT_PUBLIC_API_URL}}
+        NEXT_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${NEXT_PUBLIC_SOCKET_URL:?set MALAHEM_APP_URL or NEXT_PUBLIC_SOCKET_URL}}
+    restart: unless-stopped
+    environment:
+      PORT: '3003'
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      NEXT_PUBLIC_API_URL: ${MALAHEM_API_URL:-${NEXT_PUBLIC_API_URL}}
+      NEXT_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${NEXT_PUBLIC_SOCKET_URL}}
+      NEXT_PUBLIC_BUTCHER_BASE_PATH: /butcher
+    ports:
+      - '127.0.0.1:3103:3003'
+    networks:
+      - malahem_internal
+    profiles: ['frontends']
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - butcher-api
+      - butcher-socket
+      - admin
+      - butcher
+    # Do not bind host :80/:443 — Sarh nginx already owns those on this VPS.
+    # Public HTTPS waits for MALAHEM_DOMAIN. Internal edge only:
+    ports:
+      - '127.0.0.1:3180:80'
+    profiles: ['frontends']
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/butcher-location.conf:/etc/nginx/includes/butcher-location.conf:ro
+      - ./nginx/admin-location.conf:/etc/nginx/includes/admin-location.conf:ro
+      - ./nginx/payment-bridge.conf:/etc/nginx/includes/payment-bridge.conf:ro
+      - ./nginx/butcher-api-location.conf:/etc/nginx/includes/butcher-api-location.conf:ro
+      - ./nginx/ssl-redirect.conf:/etc/nginx/includes/ssl-redirect.conf:ro
+    networks:
+      - malahem_internal
 
 volumes:
   butcher_postgres_data:
   butcher_redis_data:
 
 networks:
-  butcher_internal:
+  malahem_internal:
     driver: bridge
-  sarh_internal:
-    external: true
-    name: sarh_internal

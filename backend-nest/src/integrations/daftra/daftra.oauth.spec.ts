@@ -197,8 +197,8 @@ describe('DaftraService OAuth routes (authorization_code unsupported)', () => {
     process.env.DAFTRA_CLIENT_ID = 'cid';
     process.env.DAFTRA_CLIENT_SECRET = 'csecret-value';
     process.env.DAFTRA_OAUTH_REDIRECT_URI =
-      'https://sarhsa.online/api/butchers/daftra/oauth/callback';
-    process.env.APP_URL = 'https://sarhsa.online';
+      'https://api.malahem.example/api/butchers/daftra/oauth/callback';
+    process.env.APP_URL = 'https://app.malahem.example';
   });
 
   afterAll(() => {

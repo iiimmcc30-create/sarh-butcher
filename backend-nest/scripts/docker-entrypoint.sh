@@ -65,9 +65,22 @@ NODE
     exit 1
   fi
 
+  # Production restarts must not change schema. One-shot: RUN_MIGRATIONS=true.
+  # Development still migrates unless SKIP_MIGRATIONS=true.
+  should_migrate=false
   if [ "${SKIP_MIGRATIONS:-false}" = "true" ]; then
-    echo "SKIP_MIGRATIONS=true — skipping migrate deploy (no schema changes)."
+    echo "SKIP_MIGRATIONS=true — skipping migrate deploy."
+  elif [ "${NODE_ENV:-}" = "production" ]; then
+    if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
+      should_migrate=true
+    else
+      echo "NODE_ENV=production — skipping migrate deploy. Run prisma migrate deploy explicitly, or set RUN_MIGRATIONS=true for a one-shot."
+    fi
   else
+    should_migrate=true
+  fi
+
+  if [ "$should_migrate" = "true" ]; then
     echo "Running prisma migrate deploy..."
     if ! timeout 120 npx prisma migrate deploy; then
       echo "ERROR: prisma migrate deploy failed."

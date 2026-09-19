@@ -9,9 +9,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p public
 
-# Baked into the Next.js client bundle at build time
-ARG NEXT_PUBLIC_API_URL=https://sarhsa.online/api/butcher
-ARG NEXT_PUBLIC_SOCKET_URL=https://sarhsa.online
+# Baked into the Next.js client bundle at build time.
+# No production domain default — pass MALAHEM_API_URL / NEXT_PUBLIC_* at build.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_SOCKET_URL
 ARG NEXT_PUBLIC_ADMIN_BASE_PATH=/admin
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL

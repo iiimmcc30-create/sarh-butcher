@@ -1,6 +1,6 @@
 const PRODUCTION_ORIGINS: string[] = [];
 
-const STALE_ORIGIN_MARKERS = ['railway.app'];
+const STALE_ORIGIN_MARKERS = ['railway.app', 'sarhsa.online'];
 
 function parseOriginList(raw: string | undefined): string[] {
   return (raw || '')
@@ -53,6 +53,10 @@ export function resolveCorsOrigins(): string[] {
     .replace(/\/$/, '')
     .trim();
   if (butcherDashboard) fromEnv.push(butcherDashboard);
+  for (const key of ['MALAHEM_DASHBOARD_URL', 'MALAHEM_ADMIN_URL', 'MALAHEM_APP_URL'] as const) {
+    const value = (process.env[key] || '').replace(/\/$/, '').trim();
+    if (value) fromEnv.push(value);
+  }
   for (const host of parseOriginList(
     process.env.BUTCHER_DASHBOARD_VERCEL_HOSTS,
   )) {

@@ -30,6 +30,7 @@ function resolveSocketPath(): string {
   const fromEnv = process.env.EXPO_PUBLIC_SOCKET_PATH?.trim();
   if (fromEnv) return fromEnv.startsWith('/') ? fromEnv : `/${fromEnv}`;
   const url = resolveSocketUrl();
+  // Backward compat: only if an operator still publishes under /api/butcher.
   if (/\/api\/butcher$/i.test(url.replace(/\/$/, ''))) {
     return '/api/butcher/socket.io';
   }

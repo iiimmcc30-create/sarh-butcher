@@ -1,9 +1,9 @@
 /**
- * Expo web dev with local /api proxy (default) or Railway fallback.
+ * Expo web dev with local /api proxy (default) or a remote Malahem API.
  * Usage: npm run web
  *
  * Local (default): proxy → http://127.0.0.1:3001
- * Railway only:    WEB_USE_LOCAL_API=false npm run web
+ * Remote only:     WEB_USE_LOCAL_API=false EXPO_PUBLIC_API_URL=https://… npm run web
  */
 const { spawn } = require('child_process');
 const http = require('http');
@@ -12,16 +12,25 @@ const path = require('path');
 const { URL } = require('url');
 
 const PRODUCTION_API = (
-  process.env.RAILWAY_API_URL || 'https://sarhsa.online'
+  process.env.EXPO_PUBLIC_API_URL ||
+  process.env.RAILWAY_API_URL ||
+  ''
 ).replace(/\/$/, '');
-const PRODUCTION_SOCKET = (
-  process.env.EXPO_PUBLIC_SOCKET_URL || 'https://sarhsa.online'
-).replace(/\/$/, '');
+const PRODUCTION_SOCKET = (process.env.EXPO_PUBLIC_SOCKET_URL || '').replace(
+  /\/$/,
+  '',
+);
 const LOCAL_API = (process.env.LOCAL_API_URL || 'http://127.0.0.1:3001').replace(
   /\/$/,
   '',
 );
 const useLocal = process.env.WEB_USE_LOCAL_API !== 'false';
+if (!useLocal && !PRODUCTION_API) {
+  console.error(
+    'WEB_USE_LOCAL_API=false requires EXPO_PUBLIC_API_URL (independent Malahem origin). No Sarh fallback.',
+  );
+  process.exit(1);
+}
 const BACKEND = (useLocal ? LOCAL_API : PRODUCTION_API).replace(/\/$/, '');
 const PROXY_PORT = Number(process.env.WEB_DEV_PROXY_PORT || 8787);
 const LOCAL_SOCKET = (process.env.LOCAL_SOCKET_URL || 'http://127.0.0.1:3002').replace(

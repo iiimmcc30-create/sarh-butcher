@@ -82,7 +82,7 @@ export class ButcherDaftraController {
 
   /**
    * Browser redirect target for Daftra OAuth. Must stay Public.
-   * Production URI: https://sarhsa.online/api/butchers/daftra/oauth/callback
+   * Production URI: ${MALAHEM_API_URL}/api/butchers/daftra/oauth/callback
    */
   @Public()
   @RateLimit('api')

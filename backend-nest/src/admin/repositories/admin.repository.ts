@@ -998,7 +998,7 @@ export class AdminRepository {
             (orderCommissionsAgg._sum.amount ?? 0),
         ),
         noteAr:
-          'عمولتان منفصلتان: (1) عمولة الإعلان 1% عبر ListingFee وفق تعهد البائع — (2) عمولة طلب الملحمة 10% عند delivered عبر Payment(referenceType=order_commission).',
+          'عمولة طلب الملحمة 10% عند delivered عبر Payment(referenceType=order_commission، المعرّف BOC-{orderId}). الإعفاء محلي عبر Butcher.commissionExempt وليس باقات سرح.',
       },
       charts: {
         usersByDay: Array.from(users7.entries()).map(([date, count]) => ({

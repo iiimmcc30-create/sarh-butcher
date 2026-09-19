@@ -17,7 +17,7 @@ describe('public butcher join HTML', () => {
     expect(html).toContain('/api/butcher-applications/join');
     expect(joinApiPrefix({})).toBe('/api');
     expect(
-      joinApiPrefix({ PUBLIC_API_URL: 'https://sarhsa.online/api/butcher' }),
+      joinApiPrefix({ PUBLIC_API_URL: 'https://api.malahem.example/api/butcher' }),
     ).toBe('/api/butcher');
     expect(html).toContain("purpose: 'join'");
     expect(html).toContain('/butcher/login');

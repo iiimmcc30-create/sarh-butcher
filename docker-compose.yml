@@ -20,7 +20,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - butcher_internal
+      - malahem_internal
 
   redis:
     image: redis:7-alpine
@@ -36,12 +36,12 @@ services:
       timeout: 3s
       retries: 10
     networks:
-      - butcher_internal
+      - malahem_internal
 
 volumes:
   butcher_postgres_data:
   butcher_redis_data:
 
 networks:
-  butcher_internal:
+  malahem_internal:
     driver: bridge

@@ -1,13 +1,10 @@
-# Overlay for the existing SARH nginx service only.
-# Used FROM /opt/sarh with:
-#   docker compose -f docker-compose.prod.yml -f docker-compose.prod.ssl.yml \
-#     -f /opt/sarh-butcher/docker-compose.nginx-edge.yml \
-#     --env-file .env.production up -d nginx
+# Optional TLS volume extra for independent Malahem nginx.
+# Use WITH docker-compose.prod.yml only.
+# Do NOT compose this onto /opt/sarh or attach to sarh_internal.
 #
-# Does not recreate SARH api/postgres/redis. Do not commit this into the SARH repo.
+#   docker compose -f docker-compose.prod.yml -f docker-compose.nginx-edge.yml up -d nginx
 services:
   nginx:
     volumes:
-      - /opt/sarh-butcher/nginx/hostinger-http.conf:/etc/nginx/conf.d/default.conf:ro
-      - /opt/sarh-butcher/nginx/hostinger-ssl.conf:/etc/nginx/conf.d/ssl-server.conf:ro
-      - /opt/sarh-butcher/nginx/butcher-api-location.conf:/etc/nginx/includes/butcher-api-location.conf:ro
+      - ./nginx/nginx.ssl.server.conf:/etc/nginx/includes/ssl-server.conf:ro
+      - ./nginx/hostinger-ssl.conf:/etc/nginx/conf.d/ssl-server.conf:ro

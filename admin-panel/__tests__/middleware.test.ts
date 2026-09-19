@@ -117,18 +117,18 @@ describe('admin middleware basePath login redirect', () => {
     const { middleware: mw } = await import('@/middleware');
     const headers = new Headers();
     const req = new NextRequest(
-      new URL('/users', 'https://sarhsa.online/admin/users'),
+      new URL('/users', 'https://admin.malahem.example/admin/users'),
       { headers },
     );
     // Simulate production request URL as seen behind nginx path prefix.
-    const prodReq = new NextRequest('https://sarhsa.online/admin/users', {
+    const prodReq = new NextRequest('https://admin.malahem.example/admin/users', {
       headers,
     });
     const res = await mw(prodReq);
     expect(res.status).toBe(307);
     const location = res.headers.get('location') ?? '';
-    expect(location).toBe('https://sarhsa.online/admin/login');
-    expect(location).not.toMatch(/https:\/\/sarhsa\.online\/login$/);
+    expect(location).toBe('https://admin.malahem.example/admin/login');
+    expect(location).not.toMatch(/https:\/\/admin\.malahem\.example\/login$/);
     expect(new URL(location).pathname).toBe('/admin/login');
     void req;
   });

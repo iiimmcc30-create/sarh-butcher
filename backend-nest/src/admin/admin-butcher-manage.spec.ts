@@ -39,10 +39,16 @@ describe('admin butcher manage', () => {
       cover: null,
       type: 'verified',
       isOpen: false,
+      commissionExempt: true,
       country: 'SA',
       lat: 24.7,
       lng: 46.7,
     });
+    expect(parsed.success).toBe(true);
+  });
+
+  it('updateButcherSchema accepts commissionExempt isolation flag', () => {
+    const parsed = updateButcherSchema.safeParse({ commissionExempt: false });
     expect(parsed.success).toBe(true);
   });
 

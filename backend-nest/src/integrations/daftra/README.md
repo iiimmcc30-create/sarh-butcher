@@ -55,7 +55,7 @@ Callers never pass `apiKey` or `subdomain` from the client for data requests.
 
 Registered Redirect URI (ENV `DAFTRA_OAUTH_REDIRECT_URI`):
 
-`https://sarhsa.online/api/butchers/daftra/oauth/callback`
+`${MALAHEM_API_URL}/api/butchers/daftra/oauth/callback`
 
 ## Caching
 

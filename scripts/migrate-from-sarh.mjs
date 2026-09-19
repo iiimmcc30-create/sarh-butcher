@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 /**
+ * HISTORICAL / OPTIONAL EXTRACTION TOOL — NOT PART OF PRODUCTION LAUNCH.
+ *
+ * Malahem production starts with a clean PostgreSQL database and zero
+ * migrated users/data. Do not run this script as a launch step.
+ *
  * Extract butcher-domain rows from a READ-ONLY local/staging Sarh source DB
  * into an independent Malahem database.
  *

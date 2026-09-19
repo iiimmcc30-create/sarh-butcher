@@ -1,7 +1,8 @@
 /**
  * Public URLs for ملاحم سرح.
- * APP_URL = site origin (payment return pages). Never a SARH API fallback.
- * PUBLIC_API_URL = independent API prefix on the shared host.
+ * APP_URL / MALAHEM_APP_URL = site origin (payment return pages).
+ * PUBLIC_API_URL / MALAHEM_API_URL = independent API origin.
+ * If that origin still ends with /api/butcher, path-prefix compat is applied.
  */
 export function publicSiteUrl(
   env: NodeJS.ProcessEnv = process.env,

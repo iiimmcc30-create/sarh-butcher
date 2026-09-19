@@ -24,7 +24,7 @@ export const USER_KEY = 'butcher_user';
 export const BUTCHER_KEY = 'butcher_profile';
 export const SESSION_COOKIE = 'butcher_token';
 
-/** Browser uses /api locally (Next rewrite) or /api/butcher on the shared host. */
+/** Browser uses /api locally (Next rewrite). /api/butcher is optional path-prefix compat. */
 export const apiClient = axios.create({
   baseURL: typeof window !== 'undefined' ? browserApiBase() : `${SERVER_API_URL.replace(/\/$/, '')}/api`,
   timeout: 30000,

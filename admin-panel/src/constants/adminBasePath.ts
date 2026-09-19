@@ -1,4 +1,4 @@
-/** Empty in local/dev; `/admin` when the panel is served on sarhsa.online/admin. */
+/** Empty in local/dev; `/admin` when the panel is served under a path prefix. */
 export function getAdminBasePath(): string {
   return (process.env.NEXT_PUBLIC_ADMIN_BASE_PATH || '').replace(/\/$/, '');
 }

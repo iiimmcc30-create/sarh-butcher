@@ -48,11 +48,18 @@ export function validateProductionEnv(): void {
       'NI_API_KEY',
       'NI_WEBHOOK_SECRET',
       'APP_URL',
+      'ALLOWED_ORIGINS',
       'CRON_SECRET',
       'SECRETS_ENCRYPTION_KEY',
       'JWT_ISSUER',
     ]),
   );
+
+  const publicApi =
+    process.env.PUBLIC_API_URL?.trim() || process.env.MALAHEM_API_URL?.trim() || '';
+  if (!publicApi) {
+    missing.push('PUBLIC_API_URL or MALAHEM_API_URL');
+  }
 
   const appUrl = process.env.APP_URL?.trim() ?? '';
   if (appUrl) {
@@ -64,6 +71,49 @@ export function validateProductionEnv(): void {
         'APP_URL must not point at Railway/Render — set the independent butcher APP_URL',
       );
     }
+    if (/sarhsa\.online/i.test(appUrl)) {
+      problems.push(
+        'APP_URL must not use sarhsa.online — set MALAHEM_APP_URL / APP_URL to the independent Malahem origin',
+      );
+    }
+  }
+
+  if (publicApi && /sarhsa\.online/i.test(publicApi)) {
+    problems.push(
+      'PUBLIC_API_URL / MALAHEM_API_URL must not use sarhsa.online',
+    );
+  }
+
+  const allowedOrigins = process.env.ALLOWED_ORIGINS?.trim() ?? '';
+  if (allowedOrigins) {
+    const parts = allowedOrigins.split(',').map((value) => value.trim()).filter(Boolean);
+    if (parts.some((value) => value === '*')) {
+      problems.push('ALLOWED_ORIGINS must not contain * — list exact https origins');
+    }
+    if (parts.some((value) => /sarhsa\.online/i.test(value))) {
+      problems.push(
+        'ALLOWED_ORIGINS must not include sarhsa.online — use Malahem dashboard/admin origins',
+      );
+    }
+    if (parts.some((value) => /localhost|127\.0\.0\.1/i.test(value))) {
+      problems.push('ALLOWED_ORIGINS must not include localhost in production');
+    }
+    for (const value of parts) {
+      if (value === '*') continue;
+      try {
+        const parsed = new URL(value);
+        if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+          problems.push(`ALLOWED_ORIGINS contains a malformed origin: ${value}`);
+        }
+      } catch {
+        problems.push(`ALLOWED_ORIGINS contains a malformed origin: ${value}`);
+      }
+    }
+  }
+
+  const jwtIssuer = process.env.JWT_ISSUER?.trim() ?? '';
+  if (jwtIssuer && jwtIssuer !== 'malahm-sarh') {
+    problems.push('JWT_ISSUER must be malahm-sarh');
   }
 
   const jwtSecret = process.env.JWT_SECRET?.trim() ?? '';
@@ -73,6 +123,18 @@ export function validateProductionEnv(): void {
   }
   if (jwtRefresh && jwtRefresh.length < 32) {
     problems.push('JWT_REFRESH_SECRET must be at least 32 characters');
+  }
+
+  const redisPrefix = process.env.REDIS_KEY_PREFIX?.trim() ?? '';
+  if (redisPrefix && !redisPrefix.startsWith('butcherapp')) {
+    problems.push('REDIS_KEY_PREFIX must start with butcherapp');
+  }
+
+  const cloudFolder = process.env.CLOUDINARY_FOLDER?.trim() ?? '';
+  if (cloudFolder && (/^safat(\/|$)/i.test(cloudFolder) || cloudFolder === 'sarh')) {
+    problems.push(
+      'CLOUDINARY_FOLDER must be the independent Malahem folder (sarh-butcher), not safat or sarh',
+    );
   }
 
   if (process.env.DEV_OTP === 'true') {

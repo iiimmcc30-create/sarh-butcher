@@ -22,9 +22,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://sarhsa.online/api/butcher",
-        "EXPO_PUBLIC_SOCKET_URL": "https://sarhsa.online",
-        "EXPO_PUBLIC_SOCKET_PATH": "/api/butcher/socket.io"
+        "EXPO_PUBLIC_SOCKET_PATH": "/socket.io"
       }
     },
     "production": {
@@ -33,9 +31,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://sarhsa.online/api/butcher",
-        "EXPO_PUBLIC_SOCKET_URL": "https://sarhsa.online",
-        "EXPO_PUBLIC_SOCKET_PATH": "/api/butcher/socket.io"
+        "EXPO_PUBLIC_SOCKET_PATH": "/socket.io"
       }
     }
   },

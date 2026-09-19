@@ -67,8 +67,8 @@ describe('admin navigation & feature routes inventory', () => {
   });
 
   it('keeps brand identity constants', () => {
-    expect(BRAND_NAME_AR).toBe('سرح');
-    expect(BRAND_NAME_EN).toBe('Sarh');
+    expect(BRAND_NAME_AR).toBe('ملاحم سرح');
+    expect(BRAND_NAME_EN).toBe('Malahem Sarh');
   });
 
   it('defines official service categories used by admin CRUD', () => {

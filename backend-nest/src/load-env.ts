@@ -21,6 +21,9 @@ alias('MALAHEM_NI_API_KEY', 'NI_API_KEY');
 alias('MALAHEM_NI_OUTLET_ID', 'NI_OUTLET_ID');
 alias('MALAHEM_NI_WEBHOOK_SECRET', 'NI_WEBHOOK_SECRET');
 alias('MALAHEM_NI_BASE_URL', 'NI_BASE_URL');
+alias('MALAHEM_API_URL', 'PUBLIC_API_URL');
+alias('MALAHEM_APP_URL', 'APP_URL');
+alias('MALAHEM_DASHBOARD_URL', 'BUTCHER_DASHBOARD_URL');
 
 if (!process.env.DIRECT_URL?.trim() && process.env.DATABASE_URL?.trim()) {
   process.env.DIRECT_URL = process.env.DATABASE_URL;

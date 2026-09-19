@@ -61,8 +61,8 @@ async function main() {
       action: 'PURCHASE',
       amount: { currencyCode: 'SAR', value: 100 },
       merchantAttributes: {
-        redirectUrl: 'https://sarhsa.online/payment/result',
-        cancelUrl: 'https://sarhsa.online/payment/cancel',
+        redirectUrl: `${process.env.APP_URL || 'https://app.malahem.example'}/payment/result`,
+        cancelUrl: `${process.env.APP_URL || 'https://app.malahem.example'}/payment/cancel`,
         merchantOrderReference: merchantRef,
         skipConfirmationPage: true,
       },

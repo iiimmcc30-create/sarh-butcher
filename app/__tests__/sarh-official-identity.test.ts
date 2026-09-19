@@ -32,6 +32,22 @@ describe('Sarh official identity', () => {
     expect(SARH_BUTCHER_LOGIN_URL).toBe('https://sarhsa.online/butcher/login');
   });
 
+  it('does not point Malahem legal/info pages at sarhsa.online', () => {
+    const legalPages = [
+      'app/info/contact.tsx',
+      'app/info/terms.tsx',
+      'app/info/privacy.tsx',
+      'app/info/about.tsx',
+      'app/info/refund.tsx',
+      'constants/legal.ts',
+      'constants/malahemOfficial.ts',
+    ];
+    for (const relative of legalPages) {
+      const source = readFileSync(join(__dirname, '..', relative), 'utf8');
+      expect(source).not.toMatch(/sarhsa\.online/);
+    }
+  });
+
   it('does not keep alsfat contact identity in user-facing app pages', () => {
     for (const relative of identityFiles) {
       const source = readFileSync(join(__dirname, '..', relative), 'utf8');

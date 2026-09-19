@@ -29,7 +29,7 @@ export default function ButchersMoreScreen() {
   const { me } = useAppUser();
   const { user } = useAuth();
 
-  const displayName = me.arabicName || me.displayName || me.username || 'مستخدم سرح';
+  const displayName = me.arabicName || me.displayName || me.username || 'مستخدم ملاحم سرح';
   const phone = user?.phone;
 
   const goRegister = () => {
@@ -96,7 +96,7 @@ export default function ButchersMoreScreen() {
           <SidebarMenuItem
             icon="storefront-outline"
             title="سجّل ملحمتك"
-            subtitle="انضم كشريك بائع في سرح"
+            subtitle="انضم كشريك بائع في ملاحم سرح"
             colors={colors}
             showDivider
             onPress={goRegister}
