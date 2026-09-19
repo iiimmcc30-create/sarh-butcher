@@ -1,0 +1,33 @@
+# Dependencies / build
+node_modules/
+dist/
+.next/
+coverage/
+.expo/
+web-build/
+playwright-report/
+test-results/
+blob-report/
+
+# Secrets — never commit
+.env
+.env.local
+.env.production
+.env.development
+.env.staging
+*.pem
+*.p8
+*.keystore
+google-services.json
+GoogleService-Info.plist
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.log
+npm-debug.log*
+
+# Generated
+expo-env.d.ts
+backend-nest/src/generated/

@@ -1,0 +1,47 @@
+# ملاحم سرح — local development. Isolated from SARH compose project `sarh`.
+# Usage: docker compose up -d postgres redis
+name: sarh-butcher
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-butcher}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me-butcher-db-password}
+      POSTGRES_DB: ${POSTGRES_DB:-sarh_butcher}
+    ports:
+      - '5433:5432'
+    volumes:
+      - butcher_postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - butcher_internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy noeviction
+    ports:
+      - '6380:6379'
+    volumes:
+      - butcher_redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks:
+      - butcher_internal
+
+volumes:
+  butcher_postgres_data:
+  butcher_redis_data:
+
+networks:
+  butcher_internal:
+    driver: bridge
