@@ -9,7 +9,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p public
 
-ARG NEXT_PUBLIC_API_URL=https://sarhsa.online
+ARG NEXT_PUBLIC_API_URL=https://sarhsa.online/api/butcher
 ARG NEXT_PUBLIC_SOCKET_URL=https://sarhsa.online
 ARG NEXT_PUBLIC_BUTCHER_BASE_PATH=/butcher
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL

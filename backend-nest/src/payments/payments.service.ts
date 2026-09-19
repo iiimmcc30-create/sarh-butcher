@@ -712,8 +712,6 @@ export class PaymentsService
           type,
           referenceId,
           userId: user.userId,
-          planId,
-          billingCycle,
           contact,
         });
       } catch (err: unknown) {
@@ -750,8 +748,6 @@ export class PaymentsService
         type,
         referenceId,
         userId: user.userId,
-        planId,
-        billingCycle,
         contact,
       });
     } catch (err: unknown) {

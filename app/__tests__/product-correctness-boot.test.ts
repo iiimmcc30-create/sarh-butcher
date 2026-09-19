@@ -105,10 +105,10 @@ describe('M1 single boot navigation source', () => {
     ).toEqual({ type: 'replace', href: '/onboarding' });
   });
 
-  it('sends onboarding-complete unauthenticated users to welcome', () => {
+  it('sends onboarding-complete unauthenticated users to the butcher market', () => {
     expect(resolveBootNavigation(base)).toEqual({
       type: 'replace',
-      href: '/auth/welcome',
+      href: '/butchers',
     });
   });
 

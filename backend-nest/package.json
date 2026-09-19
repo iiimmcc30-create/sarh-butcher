@@ -121,6 +121,23 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.(spec|test)\\.ts$",
+    "testPathIgnorePatterns": [
+      "/listings/",
+      "/posts/",
+      "/livestreams/",
+      "/official-services/",
+      "/feed-suppliers/",
+      "/explore-sarh-banners/",
+      "/editorial-stories/",
+      "/knowledge/",
+      "/fees/",
+      "/market-categories/",
+      "/home-explore/",
+      "/content/",
+      "/search/",
+      "/reports/",
+      "/stories/"
+    ],
     "moduleNameMapper": {
       "^@/lib/(.*)$": "<rootDir>/shared/lib/$1",
       "^@/middleware/(.*)$": "<rootDir>/shared/middleware/$1",

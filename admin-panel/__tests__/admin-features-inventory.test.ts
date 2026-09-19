@@ -27,33 +27,29 @@ describe('admin navigation & feature routes inventory', () => {
       '/payments',
       '/commissions',
       '/users',
-      '/posts',
-      '/editorial-stories',
-      '/knowledge',
-      '/ministry',
-      '/listings',
-      '/categories',
-      '/reports',
       '/support',
-      '/live',
       '/butchers',
       '/butcher-banners',
-      '/explore-sarh-banners',
-      '/feed-suppliers',
       '/applications',
       '/orders',
-      '/plans',
-      '/content',
-      '/home-explore',
       '/settings',
     ]);
+    expect(ADMIN_NAV.map((n) => n.href)).not.toEqual(
+      expect.arrayContaining([
+        '/posts',
+        '/listings',
+        '/plans',
+        '/ministry',
+        '/live',
+      ]),
+    );
   });
 
   it('marks nested paths active under their section', () => {
     expect(isAdminNavActive('/support/tickets/1', '/support')).toBe(true);
     expect(isAdminNavActive('/users', '/')).toBe(false);
     expect(isAdminNavActive('/', '/')).toBe(true);
-    expect(isAdminNavActive('/listings', '/listings')).toBe(true);
+    expect(isAdminNavActive('/orders', '/orders')).toBe(true);
   });
 
   it('has a page.tsx for every declared admin feature route', () => {

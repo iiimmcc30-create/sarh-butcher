@@ -67,9 +67,6 @@ describe('WorkerCronService Daftra product poll', () => {
     const service = new WorkerCronService(
       {} as never,
       cache as never,
-      {} as never,
-      {} as never,
-      {} as never,
       daftra as never,
       logger as never,
     );
@@ -100,14 +97,14 @@ describe('WorkerCronService Daftra product poll', () => {
       'butcher-b',
     );
     expect(setMock).toHaveBeenCalledWith(
-      'cron:daftra_products:butcher-a',
+      'butcherapp:cron:daftra_products:butcher-a',
       '1',
       'EX',
       DAFTRA_PRODUCT_SYNC_LOCK_TTL_SEC,
       'NX',
     );
     expect(setMock).toHaveBeenCalledWith(
-      'cron:daftra_products:butcher-b',
+      'butcherapp:cron:daftra_products:butcher-b',
       '1',
       'EX',
       DAFTRA_PRODUCT_SYNC_LOCK_TTL_SEC,
@@ -124,7 +121,8 @@ describe('WorkerCronService Daftra product poll', () => {
 
   it('skips a butcher when its Redis lock is held and continues others', async () => {
     const { service, daftra } = setup({
-      lockAcquired: (key) => key !== 'cron:daftra_products:butcher-a',
+      lockAcquired: (key) =>
+        key !== 'butcherapp:cron:daftra_products:butcher-a',
     });
 
     const summary = await service.runDaftraProductSyncCron();

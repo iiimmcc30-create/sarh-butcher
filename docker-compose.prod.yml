@@ -120,12 +120,16 @@ services:
   admin:
     build:
       context: ./admin-panel
+      args:
+        NEXT_PUBLIC_ADMIN_BASE_PATH: /admin
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://sarhsa.online/api/butcher}
     restart: unless-stopped
     environment:
       PORT: '3000'
       JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
       NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
+      NEXT_PUBLIC_ADMIN_BASE_PATH: /admin
     networks:
       - butcher_internal
 

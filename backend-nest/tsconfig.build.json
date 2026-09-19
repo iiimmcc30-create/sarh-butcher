@@ -6,6 +6,21 @@
     "dist",
     "scripts",
     "**/*spec.ts",
-    "**/__tests__/**"
+    "**/__tests__/**",
+    "src/listings/**",
+    "src/posts/**",
+    "src/livestreams/**",
+    "src/official-services/**",
+    "src/feed-suppliers/**",
+    "src/explore-sarh-banners/**",
+    "src/editorial-stories/**",
+    "src/knowledge/**",
+    "src/fees/**",
+    "src/market-categories/**",
+    "src/home-explore/**",
+    "src/content/**",
+    "src/search/**",
+    "src/reports/**",
+    "src/stories/**"
   ]
 }
