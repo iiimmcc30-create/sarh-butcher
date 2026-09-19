@@ -38,6 +38,16 @@ rec(!stripComments(vps).includes('sarh_internal'), 'vps compose has no sarh_inte
 rec(payment.includes('api:3001'), 'payment-bridge → api:3001');
 rec(!payment.includes('web:80'), 'payment-bridge does not use web:80');
 rec(nginx.includes('payment-bridge.conf'), 'nginx.prod includes payment-bridge');
+rec(nginx.includes('web-location.conf'), 'nginx.prod includes customer web catch-all');
+rec(/^\s+web:/m.test(vps), 'vps compose has customer web service');
+rec(vps.includes('172.20.0.1:3104:80'), 'vps compose publishes web on 172.20.0.1:3104');
+const sni = read('nginx/malahem-sni-locations.conf');
+rec(sni.includes('location /api/'), 'sni keeps /api');
+rec(sni.includes('location /socket.io/'), 'sni keeps /socket.io');
+rec(sni.includes('location = /admin'), 'sni keeps /admin');
+rec(sni.includes('location = /butcher'), 'sni keeps /butcher');
+rec(!/location\s*=\s*\/\s*\{[\s\S]*?return\s+302\s+\/butcher/.test(sni), 'sni root is not 302 /butcher');
+rec(sni.includes('proxy_pass http://172.20.0.1:3104'), 'sni root proxies customer web :3104');
 rec(!eas.includes('sarhsa.online'), 'eas.json has no sarhsa.online');
 rec(appJson.expo?.slug === 'malahm', 'Expo slug is malahm');
 rec(appJson.expo?.android?.package === 'com.sarh.butcher', 'Android package is com.sarh.butcher');

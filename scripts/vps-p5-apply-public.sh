@@ -124,9 +124,13 @@ docker compose -f docker-compose.vps.yml build butcher-api
 docker compose -f docker-compose.vps.yml up -d \
   butcher-postgres butcher-redis butcher-api worker butcher-socket
 
+echo "=== customer web on :3104 ==="
+docker compose -f docker-compose.vps.yml --profile frontends build web
+docker compose -f docker-compose.vps.yml --profile frontends up -d web
+
 # Keep Malahem off sarh_internal if a leftover attach exists.
 for c in sarh-butcher-butcher-api-1 sarh-butcher-butcher-socket-1 sarh-butcher-worker-1 \
-         sarh-butcher-admin-1 sarh-butcher-butcher-1; do
+         sarh-butcher-admin-1 sarh-butcher-butcher-1 sarh-butcher-web-1; do
   docker network disconnect sarh_internal "$c" 2>/dev/null || true
 done
 
@@ -172,4 +176,6 @@ echo "=== public checks ==="
 curl -sS -m 15 -o /dev/null -w 'sarh_https=%{http_code}\n' https://sarhsa.online/api/health
 curl -sS -m 15 -o /dev/null -w 'malahem_https_health=%{http_code}\n' https://${DOMAIN}/api/health || true
 curl -sS -m 10 -o /dev/null -w 'malahem_https_ready=%{http_code}\n' https://${DOMAIN}/api/health/ready || true
+root_loc=$(curl -sSI -m 15 "https://${DOMAIN}/" | tr -d '\r' | awk 'tolower($1)=="location:"{print $2; exit}')
+echo "malahem_https_root_location=${root_loc:-none}"
 echo DONE

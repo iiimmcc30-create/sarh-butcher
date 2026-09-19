@@ -186,6 +186,31 @@ services:
       - malahem_internal
     profiles: ['frontends']
 
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      args:
+        EXPO_PUBLIC_WEB_SAME_ORIGIN: 'true'
+        EXPO_PUBLIC_API_URL: ''
+        EXPO_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${EXPO_PUBLIC_SOCKET_URL:?set MALAHEM_APP_URL or EXPO_PUBLIC_SOCKET_URL}}
+        EXPO_PUBLIC_AGORA_ENABLED: 'false'
+    image: sarh-butcher-web:latest
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:3104:80'
+      - '172.20.0.1:3104:80'
+    networks:
+      malahem_internal:
+        aliases: [web]
+    profiles: ['frontends']
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1/ >/dev/null']
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   nginx:
     image: nginx:1.27-alpine
     restart: unless-stopped
@@ -194,6 +219,7 @@ services:
       - butcher-socket
       - admin
       - butcher
+      - web
     # Do not bind host :80/:443 — Sarh nginx already owns those on this VPS.
     # Public HTTPS waits for MALAHEM_DOMAIN. Internal edge only:
     ports:
@@ -206,6 +232,7 @@ services:
       - ./nginx/payment-bridge.conf:/etc/nginx/includes/payment-bridge.conf:ro
       - ./nginx/butcher-api-location.conf:/etc/nginx/includes/butcher-api-location.conf:ro
       - ./nginx/ssl-redirect.conf:/etc/nginx/includes/ssl-redirect.conf:ro
+      - ./nginx/web-location.conf:/etc/nginx/includes/web-location.conf:ro
     networks:
       - malahem_internal
 

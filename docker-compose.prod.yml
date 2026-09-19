@@ -156,6 +156,21 @@ services:
     networks:
       - malahem_internal
 
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      args:
+        EXPO_PUBLIC_WEB_SAME_ORIGIN: 'true'
+        EXPO_PUBLIC_API_URL: ''
+        EXPO_PUBLIC_SOCKET_URL: ${MALAHEM_APP_URL:-${EXPO_PUBLIC_SOCKET_URL:?set MALAHEM_APP_URL or EXPO_PUBLIC_SOCKET_URL}}
+        EXPO_PUBLIC_AGORA_ENABLED: 'false'
+    image: sarh-butcher-web:latest
+    restart: unless-stopped
+    networks:
+      malahem_internal:
+        aliases: [web]
+
   nginx:
     image: nginx:1.27-alpine
     restart: unless-stopped
@@ -164,6 +179,7 @@ services:
       - socket
       - admin
       - butcher
+      - web
     ports:
       - '80:80'
     volumes:
@@ -173,6 +189,7 @@ services:
       - ./nginx/payment-bridge.conf:/etc/nginx/includes/payment-bridge.conf:ro
       - ./nginx/butcher-api-location.conf:/etc/nginx/includes/butcher-api-location.conf:ro
       - ./nginx/ssl-redirect.conf:/etc/nginx/includes/ssl-redirect.conf:ro
+      - ./nginx/web-location.conf:/etc/nginx/includes/web-location.conf:ro
     networks:
       - malahem_internal
 

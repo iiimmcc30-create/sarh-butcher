@@ -14,6 +14,7 @@ Verified independently:
 
 | Host | Check | Result |
 |------|--------|--------|
+| `https://malahem.sarhsa.online/` | 200 | Customer Expo web (not admin/butcher) |
 | `https://malahem.sarhsa.online/api/health` | 200 | Malahem API |
 | `https://malahem.sarhsa.online/api/health/ready` | 200 | db/redis/queue/worker ready |
 | `https://malahem.sarhsa.online/admin/login` | 200 | Malahem admin |
@@ -38,6 +39,7 @@ TLS names are independent: Malahem cert SAN is only `malahem.sarhsa.online`; Sar
 | Socket | `127.0.0.1` + `172.20.0.1:3102` |
 | Dashboard | `127.0.0.1` + `172.20.0.1:3103` |
 | Admin | `127.0.0.1` + `172.20.0.1:3100` |
+| Customer web | `127.0.0.1` + `172.20.0.1:3104` — Expo static export. Root `/` proxies here. |
 | Public edge | Existing Sarh nginx (`:80/:443`) with SNI vhost only. Upstreams are host publishes on `172.20.0.1`, not Sarh `api`/`socket` names. |
 
 Sarh nginx was recreated only to remount the combined edge files. Sarh application containers were not restarted.
