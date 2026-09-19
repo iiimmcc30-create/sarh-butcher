@@ -101,6 +101,10 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   avatar?: string;
+
+  @IsOptional()
+  @IsEnum(['MALE', 'FEMALE'])
+  gender?: 'MALE' | 'FEMALE';
 }
 
 export class ChangePasswordDto {

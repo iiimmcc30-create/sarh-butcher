@@ -266,6 +266,7 @@ export class AuthService {
         avatar: dto.avatar ?? null,
         passwordHash,
         verified: !!dto.googleId,
+        gender: dto.gender ?? null,
       });
     } catch (err) {
       if (isPrismaUniqueConflict(err)) {

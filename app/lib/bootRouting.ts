@@ -4,6 +4,7 @@ export type BootNavState = {
   onboardingComplete: boolean | null;
   isAuthenticated: boolean;
   firstSegment: string | undefined;
+  postAuthHref?: string | null;
 };
 
 export type BootNavAction =
@@ -23,10 +24,7 @@ export function resolveBootNavigation(state: BootNavState): BootNavAction {
 
   const inOnboarding = seg === 'onboarding';
   const inAuth = seg === 'auth';
-  const inInfo = seg === 'info';
   const inJoin = seg === 'join';
-  const inButchers = seg === 'butchers';
-  const inPayment = seg === 'payment';
   const inSarhTabs = seg === '(tabs)';
   const onRootIndex = !seg || seg === 'index';
   const marketHome = '/butchers';
@@ -36,31 +34,17 @@ export function resolveBootNavigation(state: BootNavState): BootNavAction {
   }
 
   if (state.onboardingComplete && inOnboarding) {
-    return {
-      type: 'replace',
-      href: state.isAuthenticated ? marketHome : '/auth/welcome',
-    };
+    return { type: 'replace', href: marketHome };
   }
 
   if (state.isAuthenticated && inAuth) {
-    return { type: 'replace', href: marketHome };
+    return { type: 'replace', href: state.postAuthHref || marketHome };
   }
 
   if (onRootIndex || inSarhTabs) {
     return { type: 'replace', href: marketHome };
   }
 
-  if (
-    !state.isAuthenticated &&
-    !inAuth &&
-    !inInfo &&
-    !inOnboarding &&
-    !inJoin &&
-    !inButchers &&
-    !inPayment
-  ) {
-    return { type: 'replace', href: '/auth/welcome' };
-  }
-
+  // Guests browse the marketplace. Login is only opened by an explicit action.
   return { type: 'stay' };
 }

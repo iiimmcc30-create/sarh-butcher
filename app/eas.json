@@ -22,7 +22,10 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_SOCKET_PATH": "/socket.io"
+        "EXPO_PUBLIC_API_URL": "https://malahem.sarhsa.online",
+        "EXPO_PUBLIC_SOCKET_URL": "https://malahem.sarhsa.online",
+        "EXPO_PUBLIC_SOCKET_PATH": "/socket.io",
+        "EXPO_PUBLIC_APP_URL": "https://malahem.sarhsa.online"
       }
     },
     "production": {

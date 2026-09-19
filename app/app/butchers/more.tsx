@@ -27,10 +27,12 @@ export default function ButchersMoreScreen() {
   const { colors } = useTheme();
   const styles = useThemedStyles(({ colors }) => createStyles(colors));
   const { me } = useAppUser();
-  const { user } = useAuth();
-
-  const displayName = me.arabicName || me.displayName || me.username || 'مستخدم ملاحم سرح';
-  const phone = user?.phone;
+  const { user, isAuthenticated } = useAuth();
+  const guest = !isAuthenticated;
+  const displayName = guest
+    ? 'زائر'
+    : me.arabicName || me.displayName || me.username || 'عميل ملاحم سرح';
+  const phone = guest ? 'تصفح بدون حساب' : user?.phone;
 
   const goRegister = () => {
     safePush('/join', undefined, router);
@@ -69,6 +71,28 @@ export default function ButchersMoreScreen() {
           </View>
         </View>
         <View>
+          <SidebarMenuItem
+            icon="person-outline"
+            title="الملف الشخصي"
+            subtitle={guest ? 'حالة غير مسجّلة / زائر' : 'بياناتك كعميل'}
+            colors={colors}
+            showDivider
+            onPress={() => safePush('/butchers/profile', undefined, router)}
+          />
+          <SidebarMenuItem
+            icon="notifications-outline"
+            title="الإشعارات"
+            colors={colors}
+            showDivider
+            onPress={() => safePush('/butchers/notification-settings', undefined, router)}
+          />
+          <SidebarMenuItem
+            icon="call-outline"
+            title="خدمة العملاء"
+            colors={colors}
+            showDivider
+            onPress={() => safePush('/support', undefined, router)}
+          />
           <SidebarMenuItem
             icon="heart-outline"
             title="تفضيلاتي"

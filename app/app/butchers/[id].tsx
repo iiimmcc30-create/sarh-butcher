@@ -62,6 +62,11 @@ import { ButcherStickyCartBar } from '@/components/butcher/ButcherStickyCartBar'
 import { ButcherStoreHero } from '@/components/butcher/ButcherStoreHero';
 import { ButcherStoreProductCard } from '@/components/butcher/ButcherStoreProductCard';
 import { useButcherCart } from '@/contexts/ButcherCartContext';
+import { requireCustomerForCart, shouldApplyPendingCartIntent } from '@/lib/requireCustomerForCart';
+import {
+  consumePendingCartIntent,
+  savePendingCartIntent,
+} from '@/services/pendingCartIntent';
 import { showToast } from '@/lib/toast';
 import {
   butcherChatRouteParams,
@@ -576,7 +581,7 @@ export default function ButcherProfileScreen() {
   const router = useRouter();
   const { colors, gradients } = useTheme();
   const styles = useThemedStyles(({ colors, scheme }) => createMainStyles(colors, scheme));
-  const { accessToken, user } = useAuth();
+  const { accessToken, user, isAuthenticated } = useAuth();
   const {
     setButcherMeta,
     itemCount,
@@ -720,7 +725,24 @@ export default function ButcherProfileScreen() {
   useFocusEffect(
     useCallback(() => {
       void loadChatAccess();
-    }, [loadChatAccess]),
+      if (!isAuthenticated || !id) return;
+      void consumePendingCartIntent().then((intent) => {
+        if (!shouldApplyPendingCartIntent(intent, id)) return;
+        setButcherMeta({
+          butcherId: intent.butcherId,
+          butcherNameAr: intent.butcherNameAr,
+          butcherLogo: intent.butcherLogo,
+        });
+        const ok = addLine({
+          product: intent.product,
+          cutType: intent.cutType,
+          weightRaw: intent.weightRaw,
+        });
+        if (ok) {
+          void showToast('تمت إضافة المنتج إلى السلة', 'success');
+        }
+      });
+    }, [addLine, id, isAuthenticated, loadChatAccess, setButcherMeta]),
   );
 
   useEffect(() => {
@@ -947,6 +969,20 @@ export default function ButcherProfileScreen() {
     cutType: CutType;
     weightRaw: string;
   }) => {
+    const gate = requireCustomerForCart(isAuthenticated);
+    if (!gate.ok) {
+      void savePendingCartIntent({
+        butcherId: butcher.id,
+        butcherNameAr: butcher.nameAr,
+        butcherLogo: butcher.logo,
+        product: input.product,
+        cutType: input.cutType,
+        weightRaw: input.weightRaw,
+      }).then(() => {
+        router.push('/auth/customer' as never);
+      });
+      return;
+    }
     const ok = addLine(input);
     if (!ok) {
       Alert.alert('خطأ', 'تعذر إضافة المنتج — تحقق من الوزن والسعر');

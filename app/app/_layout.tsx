@@ -24,6 +24,7 @@ import { SarhPatternBackground } from '@/components/ui/SarhPatternBackground';
 import { NavigationPathTracker } from '@/components/navigation/NavigationPathTracker';
 import { setupRtl, getRtlDirection, stackSlideAnimation, stackSlideBackAnimation, setupRtlFromStorage } from '@/lib/rtl';
 import { resolveBootNavigation } from '@/lib/bootRouting';
+import { peekPendingCartResumeHref } from '@/services/pendingCartIntent';
 
 import { bootstrapTheme } from '@/constants/themeBootstrap';
 
@@ -49,21 +50,32 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoading || onboardingLoading) return;
 
-    const action = resolveBootNavigation({
-      authLoading: isLoading,
-      onboardingLoading,
-      onboardingComplete,
-      isAuthenticated,
-      firstSegment: segments[0] as string | undefined,
-    });
+    let cancelled = false;
+    void (async () => {
+      const postAuthHref = isAuthenticated
+        ? await peekPendingCartResumeHref()
+        : null;
+      if (cancelled) return;
+      const action = resolveBootNavigation({
+        authLoading: isLoading,
+        onboardingLoading,
+        onboardingComplete,
+        isAuthenticated,
+        firstSegment: segments[0] as string | undefined,
+        postAuthHref,
+      });
 
-    if (action.type === 'replace') {
-      if (lastHrefRef.current === action.href) return;
-      lastHrefRef.current = action.href;
-      router.replace(action.href as any);
-      return;
-    }
-    lastHrefRef.current = null;
+      if (action.type === 'replace') {
+        if (lastHrefRef.current === action.href) return;
+        lastHrefRef.current = action.href;
+        router.replace(action.href as any);
+        return;
+      }
+      lastHrefRef.current = null;
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [isAuthenticated, isLoading, onboardingComplete, onboardingLoading, segments, router]);
 
   return <>{children}</>;
@@ -167,6 +179,7 @@ function RootNavigator() {
         <Stack.Screen name="auth/phone" options={{ animation: 'fade' }} />
         <Stack.Screen name="auth/otp" options={{ animation: stackSlideAnimation() }} />
         <Stack.Screen name="auth/register" options={{ animation: 'fade' }} />
+        <Stack.Screen name="auth/customer" options={{ animation: 'fade' }} />
         <Stack.Screen name="auth/forgot-password" options={{ animation: stackSlideAnimation() }} />
         <Stack.Screen name="expo-auth-session" options={{ animation: 'none', headerShown: false }} />
         <Stack.Screen name="live/create" options={{ freezeOnBlur: false }} />

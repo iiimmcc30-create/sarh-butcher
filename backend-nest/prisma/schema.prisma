@@ -39,6 +39,7 @@ model User {
   allowPrivateMessages                Boolean                           @default(true)
   showFollowingList                   Boolean                           @default(true)
   birthDate                           DateTime?
+  gender                              Gender?
   commentsAudience                    String                            @default("everyone")
   privateMessagesAudience             String                            @default("everyone")
   notificationsEnabled                Boolean                           @default(true)
@@ -1193,6 +1194,11 @@ enum Role {
   BUTCHER
   ADMIN
   MODERATOR
+}
+
+enum Gender {
+  MALE
+  FEMALE
 }
 
 enum PlanAudience {

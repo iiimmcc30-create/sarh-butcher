@@ -105,11 +105,29 @@ describe('M1 single boot navigation source', () => {
     ).toEqual({ type: 'replace', href: '/onboarding' });
   });
 
-  it('sends onboarding-complete unauthenticated users to the butcher market', () => {
+  it('sends onboarding-complete guests to the butcher market', () => {
     expect(resolveBootNavigation(base)).toEqual({
       type: 'replace',
       href: '/butchers',
     });
+  });
+
+  it('does not open welcome after onboarding', () => {
+    expect(
+      resolveBootNavigation({
+        ...base,
+        firstSegment: 'onboarding',
+      }),
+    ).toEqual({ type: 'replace', href: '/butchers' });
+  });
+
+  it('lets guests stay on public browse routes', () => {
+    expect(
+      resolveBootNavigation({
+        ...base,
+        firstSegment: 'search',
+      }),
+    ).toEqual({ type: 'stay' });
   });
 
   it('sends authenticated users on root index to butchers', () => {
@@ -168,6 +186,17 @@ describe('M1 single boot navigation source', () => {
         firstSegment: 'auth',
       }),
     ).toEqual({ type: 'replace', href: '/butchers' });
+  });
+
+  it('returns authenticated users to the pending cart butcher', () => {
+    expect(
+      resolveBootNavigation({
+        ...base,
+        isAuthenticated: true,
+        firstSegment: 'auth',
+        postAuthHref: '/butchers/shop-1',
+      }),
+    ).toEqual({ type: 'replace', href: '/butchers/shop-1' });
   });
 });
 

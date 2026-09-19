@@ -130,6 +130,10 @@ export class UpdateUserDto {
   @ValidateIf((_, value) => value !== null)
   @IsDateString()
   birthDate?: string | null;
+
+  @IsOptional()
+  @IsEnum(['MALE', 'FEMALE'])
+  gender?: 'MALE' | 'FEMALE' | null;
 }
 
 export class RateUserDto {
@@ -190,6 +194,10 @@ export class UpdateAccountSettingsDto {
   @ValidateIf((_, value) => value !== null)
   @IsDateString()
   birthDate?: string | null;
+
+  @IsOptional()
+  @IsEnum(['MALE', 'FEMALE'])
+  gender?: 'MALE' | 'FEMALE' | null;
 }
 
 export class ChangePhoneDto {

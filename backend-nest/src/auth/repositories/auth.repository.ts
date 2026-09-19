@@ -121,6 +121,7 @@ export class AuthRepository {
     avatar: string | null;
     passwordHash: string;
     verified: boolean;
+    gender?: 'MALE' | 'FEMALE' | null;
   }) {
     return this.prisma.user.create({
       data: {

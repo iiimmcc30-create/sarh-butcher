@@ -141,6 +141,7 @@ export type AccountSettings = {
   phone: string | null;
   email: string | null;
   birthDate: string | null;
+  gender?: 'MALE' | 'FEMALE' | null;
 };
 
 function parsePrivacySettings(data: unknown): PrivacySettings | null {
@@ -195,6 +196,7 @@ function parseAccountSettings(data: unknown): AccountSettings | null {
     email: typeof row.email === 'string' ? row.email : null,
     birthDate:
       typeof row.birthDate === 'string' ? row.birthDate : null,
+    gender: row.gender === 'MALE' || row.gender === 'FEMALE' ? row.gender : null,
   };
 }
 
@@ -298,7 +300,10 @@ export async function fetchAccountSettings(): Promise<AccountSettings | null> {
 }
 
 export async function updateAccountSettings(
-  patch: Partial<Pick<AccountSettings, 'email' | 'birthDate'>>,
+  patch: Partial<Pick<AccountSettings, 'email' | 'birthDate' | 'gender'>> & {
+    displayName?: string;
+    arabicName?: string;
+  },
   userId?: string,
 ): Promise<{ account: AccountSettings | null; message?: string }> {
   try {

@@ -43,6 +43,8 @@ interface AuthContextValue {
   accessToken: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  authState: 'guest' | 'authenticated';
+  isGuest: boolean;
   // TODO(Migration): replace activeMode with capability-based navigation after Butcher Application workflow.
   activeMode: 'USER' | 'BUTCHER';
   switchMode: (mode: 'USER' | 'BUTCHER') => void;
@@ -80,6 +82,7 @@ export interface RegisterData {
   arabicName?:  string;
   username:     string;
   country:      string;
+  gender?:      'MALE' | 'FEMALE';
   password?:    string;
   // إذا عبر Google
   googleId?:    string;
@@ -533,6 +536,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       isAuthenticated:
         !!user && !!accessToken && isSessionStillTrusted(lastAuthOkAt),
+      authState: (
+        !!user && !!accessToken && isSessionStillTrusted(lastAuthOkAt)
+          ? 'authenticated'
+          : 'guest'
+      ) as 'guest' | 'authenticated',
+      isGuest: !(!!user && !!accessToken && isSessionStillTrusted(lastAuthOkAt)),
       activeMode,
       switchMode,
       sendOtp,

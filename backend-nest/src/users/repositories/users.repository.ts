@@ -123,6 +123,7 @@ export class UsersRepository {
       notificationsEnabled?: boolean;
       email?: string | null;
       birthDate?: Date | null;
+      gender?: 'MALE' | 'FEMALE' | null;
     },
   ) {
     return this.prisma.user.update({
@@ -365,6 +366,7 @@ export class UsersRepository {
         phone: true,
         email: true,
         birthDate: true,
+        gender: true,
       },
     });
   }
@@ -400,6 +402,7 @@ export class UsersRepository {
       email?: string | null;
       birthDate?: Date | null;
       phone?: string;
+      gender?: 'MALE' | 'FEMALE' | null;
     },
   ) {
     return this.prisma.user.update({
@@ -409,6 +412,7 @@ export class UsersRepository {
         phone: true,
         email: true,
         birthDate: true,
+        gender: true,
       },
     });
   }

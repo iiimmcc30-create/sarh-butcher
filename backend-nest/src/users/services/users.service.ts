@@ -354,11 +354,16 @@ export class UsersService {
       phone: account.phone,
       email: account.email,
       birthDate: account.birthDate?.toISOString().slice(0, 10) ?? null,
+      gender: account.gender ?? null,
     };
   }
 
   async updateAccountSettings(userId: string, dto: UpdateAccountSettingsDto) {
-    if (dto.email === undefined && dto.birthDate === undefined) {
+    if (
+      dto.email === undefined &&
+      dto.birthDate === undefined &&
+      dto.gender === undefined
+    ) {
       throwApi(400, 'validation_error', 'لا توجد بيانات للتحديث');
     }
 
@@ -385,6 +390,7 @@ export class UsersService {
     const updated = await this.repo.updateAccountSettings(userId, {
       ...(dto.email !== undefined ? { email: dto.email } : {}),
       ...(birthDate !== undefined ? { birthDate } : {}),
+      ...(dto.gender !== undefined ? { gender: dto.gender } : {}),
     });
     await this.redis.cacheDel(`user:${userId}`, `user:${userId}:base`);
     this.logger.info({ userId }, 'User account settings updated');
@@ -392,6 +398,7 @@ export class UsersService {
       phone: updated.phone,
       email: updated.email,
       birthDate: updated.birthDate?.toISOString().slice(0, 10) ?? null,
+      gender: updated.gender ?? null,
     };
   }
 
