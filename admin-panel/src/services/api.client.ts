@@ -10,12 +10,13 @@ function browserApiBase(): string {
     /^https?:\/\//i.test(SERVER_API_URL) &&
     !/localhost|127\.0\.0\.1/i.test(SERVER_API_URL)
   ) {
-    return `${SERVER_API_URL.replace(/\/$/, '')}/api`;
+    const base = SERVER_API_URL.replace(/\/$/, '');
+    return base.endsWith('/api/butcher') ? base : `${base}/api`;
   }
   return '/api';
 }
 
-/** Browser uses /api locally (Next rewrite) or /api/butcher/api on the shared host. */
+/** Browser uses /api locally (Next rewrite) or /api/butcher on the shared host. */
 export const API_URL =
   typeof window !== 'undefined' ? '' : SERVER_API_URL;
 

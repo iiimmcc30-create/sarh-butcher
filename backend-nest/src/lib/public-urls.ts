@@ -21,6 +21,10 @@ export function publicApiPath(
   path: string,
   env: NodeJS.ProcessEnv = process.env,
 ): string {
-  const prefix = path.startsWith('/') ? path : `/${path}`;
-  return `${publicApiBase(env)}${prefix}`;
+  let prefix = path.startsWith('/') ? path : `/${path}`;
+  const base = publicApiBase(env);
+  if (base.endsWith('/api/butcher') && prefix.startsWith('/api/')) {
+    prefix = prefix.slice(4);
+  }
+  return `${base}${prefix}`;
 }

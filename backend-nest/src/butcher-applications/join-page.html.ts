@@ -150,7 +150,7 @@ export function joinApiPrefix(env: NodeJS.ProcessEnv = process.env): string {
   if (!pub) return '/api';
   try {
     const pathname = new URL(pub).pathname.replace(/\/$/, '');
-    return pathname ? `${pathname}/api` : '/api';
+    return pathname || '/api';
   } catch {
     return '/api';
   }

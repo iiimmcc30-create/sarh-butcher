@@ -12,7 +12,8 @@ function browserApiBase(): string {
     /^https?:\/\//i.test(SERVER_API_URL) &&
     !/localhost|127\.0\.0\.1/i.test(SERVER_API_URL)
   ) {
-    return `${SERVER_API_URL.replace(/\/$/, '')}/api`;
+    const base = SERVER_API_URL.replace(/\/$/, '');
+    return base.endsWith('/api/butcher') ? base : `${base}/api`;
   }
   return '/api';
 }
@@ -23,7 +24,7 @@ export const USER_KEY = 'butcher_user';
 export const BUTCHER_KEY = 'butcher_profile';
 export const SESSION_COOKIE = 'butcher_token';
 
-/** Browser uses /api locally (Next rewrite) or /api/butcher/api on the shared host. */
+/** Browser uses /api locally (Next rewrite) or /api/butcher on the shared host. */
 export const apiClient = axios.create({
   baseURL: typeof window !== 'undefined' ? browserApiBase() : `${SERVER_API_URL.replace(/\/$/, '')}/api`,
   timeout: 30000,

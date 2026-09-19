@@ -18,7 +18,7 @@ describe('public butcher URLs', () => {
     expect(publicSiteUrl(env)).toBe('https://sarhsa.online');
     expect(publicApiBase(env)).toBe('https://sarhsa.online/api/butcher');
     expect(publicApiPath('/api/butchers/checkout', env)).toBe(
-      'https://sarhsa.online/api/butcher/api/butchers/checkout',
+      'https://sarhsa.online/api/butcher/butchers/checkout',
     );
     expect(publicApiPath('/api/admin/cleanup', env)).not.toBe(
       'https://sarhsa.online/api/admin/cleanup',
