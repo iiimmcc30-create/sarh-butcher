@@ -1,6 +1,7 @@
 const PRODUCTION_ORIGINS: string[] = [];
 
-const STALE_ORIGIN_MARKERS = ['railway.app', 'sarhsa.online'];
+const STALE_ORIGIN_MARKERS = ['railway.app'];
+const STALE_APEX_HOSTS = new Set(['sarhsa.online', 'www.sarhsa.online']);
 
 function parseOriginList(raw: string | undefined): string[] {
   return (raw || '')
@@ -41,7 +42,11 @@ function isLocalOrigin(origin: string): boolean {
 }
 
 function isStaleOrigin(origin: string): boolean {
-  return STALE_ORIGIN_MARKERS.some((marker) => origin.includes(marker));
+  if (STALE_ORIGIN_MARKERS.some((marker) => origin.includes(marker))) {
+    return true;
+  }
+  const hostname = hostnameOf(origin);
+  return Boolean(hostname && STALE_APEX_HOSTS.has(hostname));
 }
 
 /** Allowed browser origins. Native clients send no Origin and are unaffected. */

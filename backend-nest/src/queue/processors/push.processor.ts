@@ -1,6 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { readFileSync } from 'fs';
 import admin from 'firebase-admin';
 import { PrismaService } from '../../prisma/prisma.service';
 import { QUEUE_NAMES } from '../constants';
@@ -13,10 +14,16 @@ export class PushProcessor extends WorkerHost {
     super();
     if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
       try {
+        const keyFromFile = process.env.FIREBASE_PRIVATE_KEY_FILE
+          ? readFileSync(process.env.FIREBASE_PRIVATE_KEY_FILE, 'utf8')
+          : '';
+        const privateKey = (
+          process.env.FIREBASE_PRIVATE_KEY || keyFromFile
+        ).replace(/\\n/g, '\n');
         admin.initializeApp({
           credential: admin.credential.cert({
             projectId: process.env.FIREBASE_PROJECT_ID,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+            privateKey,
             clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
           }),
         });

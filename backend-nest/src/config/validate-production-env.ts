@@ -21,6 +21,16 @@ function isNiMockKey(key: string | undefined): boolean {
   return !k || k.startsWith('test_') || k === 'change-me';
 }
 
+/** Apex/www Sarh host only. malahem.sarhsa.online is the independent Malahem origin. */
+export function isSarhApexUrl(value: string): boolean {
+  try {
+    const hostname = new URL(value).hostname.toLowerCase();
+    return hostname === 'sarhsa.online' || hostname === 'www.sarhsa.online';
+  } catch {
+    return /(?:^|\/\/)(?:www\.)?sarhsa\.online(?:[:/?#]|$)/i.test(value);
+  }
+}
+
 function collectMissing(keys: string[]): string[] {
   return keys.filter((key) => isBlank(process.env[key]));
 }
@@ -71,16 +81,16 @@ export function validateProductionEnv(): void {
         'APP_URL must not point at Railway/Render — set the independent butcher APP_URL',
       );
     }
-    if (/sarhsa\.online/i.test(appUrl)) {
+    if (isSarhApexUrl(appUrl)) {
       problems.push(
-        'APP_URL must not use sarhsa.online — set MALAHEM_APP_URL / APP_URL to the independent Malahem origin',
+        'APP_URL must not use the Sarh apex sarhsa.online — set MALAHEM_APP_URL / APP_URL to https://malahem.sarhsa.online',
       );
     }
   }
 
-  if (publicApi && /sarhsa\.online/i.test(publicApi)) {
+  if (publicApi && isSarhApexUrl(publicApi)) {
     problems.push(
-      'PUBLIC_API_URL / MALAHEM_API_URL must not use sarhsa.online',
+      'PUBLIC_API_URL / MALAHEM_API_URL must not use the Sarh apex sarhsa.online',
     );
   }
 
@@ -90,9 +100,9 @@ export function validateProductionEnv(): void {
     if (parts.some((value) => value === '*')) {
       problems.push('ALLOWED_ORIGINS must not contain * — list exact https origins');
     }
-    if (parts.some((value) => /sarhsa\.online/i.test(value))) {
+    if (parts.some((value) => isSarhApexUrl(value))) {
       problems.push(
-        'ALLOWED_ORIGINS must not include sarhsa.online — use Malahem dashboard/admin origins',
+        'ALLOWED_ORIGINS must not include the Sarh apex sarhsa.online — use https://malahem.sarhsa.online',
       );
     }
     if (parts.some((value) => /localhost|127\.0\.0\.1/i.test(value))) {

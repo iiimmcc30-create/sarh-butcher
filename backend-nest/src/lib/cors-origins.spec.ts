@@ -31,6 +31,14 @@ describe('cors origins', () => {
     expect(isAllowedCorsOrigin('https://sarhsa.online')).toBe(false);
   });
 
+  it('allows the Malahem production origin and still rejects the Sarh apex', () => {
+    process.env.NODE_ENV = 'production';
+    process.env.ALLOWED_ORIGINS = 'https://malahem.sarhsa.online';
+    expect(isAllowedCorsOrigin('https://malahem.sarhsa.online')).toBe(true);
+    expect(isAllowedCorsOrigin('https://sarhsa.online')).toBe(false);
+    expect(isAllowedCorsOrigin('https://www.sarhsa.online')).toBe(false);
+  });
+
   it('strips railway and localhost from production CORS origins', () => {
     process.env.NODE_ENV = 'production';
     process.env.ALLOWED_ORIGINS =

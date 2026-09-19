@@ -11,7 +11,8 @@ describe('independent butcher API base', () => {
     const eas = src('eas.json');
     expect(devHost).not.toMatch(/sarhsa\.online/);
     expect(devHost).not.toMatch(/sarhsa\.online\/api['"`]/);
-    expect(eas).not.toContain('sarhsa.online');
+    expect(eas).not.toContain('https://sarhsa.online');
+    expect(eas).toContain('https://malahem.sarhsa.online');
     expect(eas).not.toContain('/api/butcher');
     expect(eas).toContain('/socket.io');
   });

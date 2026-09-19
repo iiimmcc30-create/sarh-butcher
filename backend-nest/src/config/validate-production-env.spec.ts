@@ -137,6 +137,15 @@ describe('validateProductionEnv', () => {
     expect(() => validateProductionEnv()).toThrow(/sarhsa\.online/);
   });
 
+  it('accepts malahem.sarhsa.online as the independent production origin', () => {
+    fillCompleteProductionEnv();
+    process.env.APP_URL = 'https://malahem.sarhsa.online';
+    process.env.PUBLIC_API_URL = 'https://malahem.sarhsa.online';
+    process.env.ALLOWED_ORIGINS = 'https://malahem.sarhsa.online';
+
+    expect(() => validateProductionEnv()).not.toThrow();
+  });
+
   it('rejects wildcard ALLOWED_ORIGINS', () => {
     fillCompleteProductionEnv();
     process.env.ALLOWED_ORIGINS = '*';

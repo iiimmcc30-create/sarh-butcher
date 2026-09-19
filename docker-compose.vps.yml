@@ -66,6 +66,9 @@ services:
       PUBLIC_API_URL: ${MALAHEM_API_URL:-${PUBLIC_API_URL:?set MALAHEM_API_URL or PUBLIC_API_URL}}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?set ALLOWED_ORIGINS}
       SKIP_MIGRATIONS: ${SKIP_MIGRATIONS:-true}
+      FIREBASE_PRIVATE_KEY_FILE: /run/secrets/firebase-private-key.pem
+    volumes:
+      - ./secrets/firebase-private-key.pem:/run/secrets/firebase-private-key.pem:ro
     depends_on:
       butcher-postgres:
         condition: service_healthy
@@ -73,6 +76,7 @@ services:
         condition: service_healthy
     ports:
       - '127.0.0.1:3101:3001'
+      - '172.20.0.1:3101:3001'
     mem_limit: 320m
     networks:
       malahem_internal:
@@ -94,6 +98,9 @@ services:
       REDIS_PORT: '6379'
       REDIS_ENABLED: 'true'
       REDIS_KEY_PREFIX: 'butcherapp:'
+      FIREBASE_PRIVATE_KEY_FILE: /run/secrets/firebase-private-key.pem
+    volumes:
+      - ./secrets/firebase-private-key.pem:/run/secrets/firebase-private-key.pem:ro
     depends_on:
       butcher-postgres:
         condition: service_healthy
@@ -120,6 +127,9 @@ services:
       REDIS_PORT: '6379'
       REDIS_ENABLED: 'true'
       REDIS_KEY_PREFIX: 'butcherapp:'
+      FIREBASE_PRIVATE_KEY_FILE: /run/secrets/firebase-private-key.pem
+    volumes:
+      - ./secrets/firebase-private-key.pem:/run/secrets/firebase-private-key.pem:ro
     depends_on:
       butcher-postgres:
         condition: service_healthy
@@ -127,6 +137,7 @@ services:
         condition: service_healthy
     ports:
       - '127.0.0.1:3102:3002'
+      - '172.20.0.1:3102:3002'
     mem_limit: 224m
     networks:
       malahem_internal:
@@ -149,6 +160,7 @@ services:
       NEXT_PUBLIC_ADMIN_BASE_PATH: /admin
     ports:
       - '127.0.0.1:3100:3000'
+      - '172.20.0.1:3100:3000'
     networks:
       - malahem_internal
     profiles: ['frontends']
@@ -169,6 +181,7 @@ services:
       NEXT_PUBLIC_BUTCHER_BASE_PATH: /butcher
     ports:
       - '127.0.0.1:3103:3003'
+      - '172.20.0.1:3103:3003'
     networks:
       - malahem_internal
     profiles: ['frontends']
