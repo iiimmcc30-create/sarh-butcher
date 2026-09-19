@@ -3,7 +3,7 @@
  * Phase 3 live runtime E2E against the isolated ملاحم سرح stack.
  * Never talks to SARH production.
  */
-import { createSign, generateKeyPairSync, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
