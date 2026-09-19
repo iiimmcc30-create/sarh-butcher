@@ -1,13 +1,17 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-// Independent butcher API. Local ports stay local. Production uses /api/butcher.
+// Independent butcher API. Local ports stay local. Store/preview builds
+// must never fall back to SARH `/api` or a leftover Render host.
 const PRODUCTION_API =
-  process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
+  process.env.EXPO_PUBLIC_API_URL ||
+  (__DEV__ ? 'http://localhost:3001' : 'https://sarhsa.online/api/butcher');
 const PRODUCTION_SOCKET =
-  process.env.EXPO_PUBLIC_SOCKET_URL || 'http://localhost:3002';
+  process.env.EXPO_PUBLIC_SOCKET_URL ||
+  (__DEV__ ? 'http://localhost:3002' : 'https://sarhsa.online');
 const PRODUCTION_SOCKET_PATH =
-  process.env.EXPO_PUBLIC_SOCKET_PATH || '/socket.io';
+  process.env.EXPO_PUBLIC_SOCKET_PATH ||
+  (__DEV__ ? '/socket.io' : '/api/butcher/socket.io');
 /** @deprecated Railway is decommissioned; kept as alias for imports. */
 const RAILWAY_API = PRODUCTION_API;
 

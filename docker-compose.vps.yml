@@ -1,6 +1,7 @@
-# ملاحم سرح — production-shaped stack (STAGING first).
-# Do NOT point this file at SARH postgres/redis/NI webhook/JWT.
-# Do NOT deploy to production in Phase 1.
+# ملاحم سرح — Hostinger edge stack on the shared sarhsa.online VPS.
+# Isolated Postgres/Redis/API/Worker/Socket. Does NOT run SARH services.
+# Does NOT publish :3001/:3002 (those belong to SARH).
+# Attach api/socket to the existing sarh_internal network for nginx only.
 name: sarh-butcher
 
 services:
@@ -11,6 +12,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-sarh_butcher}
+    command: postgres -c shared_buffers=64MB -c max_connections=50
     volumes:
       - butcher_postgres_data:/var/lib/postgresql
     healthcheck:
@@ -18,13 +20,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    mem_limit: 192m
     networks:
       - butcher_internal
 
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy noeviction
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy noeviction
     volumes:
       - butcher_redis_data:/data
     healthcheck:
@@ -32,10 +35,11 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
+    mem_limit: 80m
     networks:
       - butcher_internal
 
-  api:
+  butcher-api:
     build:
       context: ./backend-nest
       dockerfile: Dockerfile
@@ -47,26 +51,30 @@ services:
       NODE_ENV: production
       SERVICE_MODE: api
       PORT: '3001'
+      NODE_OPTIONS: --max-old-space-size=256
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
       DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
       REDIS_HOST: redis
       REDIS_PORT: '6379'
       REDIS_ENABLED: 'true'
       REDIS_KEY_PREFIX: butcherapp:
-      APP_DEEP_LINK_SCHEME: ${APP_DEEP_LINK_SCHEME:-malahm}
-      APP_ANDROID_PACKAGE: ${APP_ANDROID_PACKAGE:-com.sarh.butcher}
+      JWT_ISSUER: malahm-sarh
+      APP_DEEP_LINK_SCHEME: malahm
+      APP_ANDROID_PACKAGE: com.sarh.butcher
       CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-sarh-butcher}
-      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3001}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-https://sarhsa.online/api/butcher}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     ports:
-      - '127.0.0.1:3001:3001'
+      - '127.0.0.1:3101:3001'
+    mem_limit: 320m
     networks:
       butcher_internal:
-        aliases: [api, butcher-api]
+      sarh_internal:
+        aliases: [butcher-api]
     entrypoint: ['./docker-entrypoint.sh']
 
   worker:
@@ -77,6 +85,7 @@ services:
     environment:
       NODE_ENV: production
       SERVICE_MODE: worker
+      NODE_OPTIONS: --max-old-space-size=192
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
       DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
       REDIS_HOST: redis
@@ -88,11 +97,12 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    mem_limit: 256m
     networks:
       - butcher_internal
     entrypoint: ['./docker-entrypoint.sh']
 
-  socket:
+  butcher-socket:
     image: sarh-butcher-backend:latest
     restart: unless-stopped
     env_file:
@@ -101,6 +111,7 @@ services:
       NODE_ENV: production
       SERVICE_MODE: socket
       PORT: '3002'
+      NODE_OPTIONS: --max-old-space-size=192
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
       DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-sarh_butcher}
       REDIS_HOST: redis
@@ -113,63 +124,13 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - '127.0.0.1:3002:3002'
+      - '127.0.0.1:3102:3002'
+    mem_limit: 224m
     networks:
       butcher_internal:
-        aliases: [socket, butcher-socket]
+      sarh_internal:
+        aliases: [butcher-socket]
     entrypoint: ['./docker-entrypoint.sh']
-
-  admin:
-    build:
-      context: ./admin-panel
-      args:
-        NEXT_PUBLIC_ADMIN_BASE_PATH: /admin
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://sarhsa.online/api/butcher}
-    restart: unless-stopped
-    environment:
-      PORT: '3000'
-      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
-      NEXT_PUBLIC_ADMIN_BASE_PATH: /admin
-    networks:
-      - butcher_internal
-
-  butcher:
-    build:
-      context: ./butcher-dashboard
-      args:
-        NEXT_PUBLIC_BUTCHER_BASE_PATH: /butcher
-    restart: unless-stopped
-    environment:
-      PORT: '3003'
-      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
-      NEXT_PUBLIC_BUTCHER_BASE_PATH: /butcher
-    networks:
-      - butcher_internal
-
-  nginx:
-    image: nginx:1.27-alpine
-    restart: unless-stopped
-    depends_on:
-      - api
-      - socket
-      - admin
-      - butcher
-    ports:
-      - '80:80'
-    volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/butcher-location.conf:/etc/nginx/includes/butcher-location.conf:ro
-      - ./nginx/admin-location.conf:/etc/nginx/includes/admin-location.conf:ro
-      - ./nginx/payment-bridge.conf:/etc/nginx/includes/payment-bridge.conf:ro
-      - ./nginx/butcher-api-location.conf:/etc/nginx/includes/butcher-api-location.conf:ro
-      - ./nginx/web-location.conf:/etc/nginx/includes/web-location.conf:ro
-      - ./nginx/ssl-redirect.conf:/etc/nginx/includes/ssl-redirect.conf:ro
-    networks:
-      - butcher_internal
 
 volumes:
   butcher_postgres_data:
@@ -178,3 +139,6 @@ volumes:
 networks:
   butcher_internal:
     driver: bridge
+  sarh_internal:
+    external: true
+    name: sarh_internal

@@ -31,3 +31,6 @@ npm-debug.log*
 # Generated
 expo-env.d.ts
 backend-nest/src/generated/
+
+# Local join/upload artifacts from runtime validation
+backend-nest/public/uploads/
