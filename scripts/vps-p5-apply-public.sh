@@ -57,6 +57,10 @@ if not unquote(mal.get("NI_BASE_URL", "")).strip():
         mal["NI_BASE_URL"] = incoming
         mal["NI_API_BASE"] = incoming
         mal["MALAHEM_NI_BASE_URL"] = incoming
+for key in ("NI_BASIC_AUTH", "NI_REALM"):
+    incoming = sarh.get(key, "").strip()
+    if incoming and not unquote(mal.get(key, "")).strip():
+        mal[key] = sarh[key]
 if not unquote(mal.get("NI_API_BASE", "")).strip() and unquote(mal.get("NI_BASE_URL", "")).strip():
     mal["NI_API_BASE"] = unquote(mal["NI_BASE_URL"])
 
@@ -80,6 +84,7 @@ mal["NEXT_PUBLIC_SOCKET_URL"] = origin
 mal["ALLOWED_ORIGINS"] = origin
 mal["DAFTRA_OAUTH_REDIRECT_URI"] = f"{origin}/api/butchers/daftra/oauth/callback"
 mal["NI_MERCHANT_ORDER_PREFIX"] = "MALAHM"
+mal["STORAGE_PROVIDER"] = "cloudinary"
 
 secrets_dir = Path("/opt/sarh-butcher/secrets")
 secrets_dir.mkdir(mode=0o700, exist_ok=True)
@@ -125,13 +130,10 @@ for c in sarh-butcher-butcher-api-1 sarh-butcher-butcher-socket-1 sarh-butcher-w
   docker network disconnect sarh_internal "$c" 2>/dev/null || true
 done
 
-echo "=== write edge nginx (new inodes; requires nginx recreate) ==="
-install -m 0644 /opt/sarh-butcher/nginx/hostinger-http.conf /opt/sarh-butcher/nginx/hostinger-http.conf
-# hostinger-ssl starts as Sarh-only; TLS vhost appended after cert.
-
-echo "=== recreate Sarh nginx to remount edge files ==="
+echo "=== recreate Sarh nginx with Malahem SNI overlay ==="
 cd /opt/sarh
 docker compose -f docker-compose.prod.yml -f docker-compose.prod.ssl.yml \
+  -f /opt/sarh-butcher/docker-compose.sarh-edge.yml \
   --env-file .env.production up -d --force-recreate --no-deps nginx
 sleep 2
 docker exec sarh-nginx-1 nginx -t
@@ -159,6 +161,7 @@ if [[ -f /etc/letsencrypt/live/${DOMAIN}/fullchain.pem ]]; then
   fi
   cd /opt/sarh
   docker compose -f docker-compose.prod.yml -f docker-compose.prod.ssl.yml \
+    -f /opt/sarh-butcher/docker-compose.sarh-edge.yml \
     --env-file .env.production up -d --force-recreate --no-deps nginx
   sleep 2
   docker exec sarh-nginx-1 nginx -t
