@@ -153,7 +153,7 @@ async function openAppOnAllDevices(deviceIds = []) {
         'shell',
         'monkey',
         '-p',
-        'com.sarh.app',
+        'com.sarh.butcher',
         '1',
       ]);
 

@@ -130,13 +130,13 @@ describe('subscriptionPlans helpers', () => {
 
 describe('paymentCheckout deep link', () => {
   it('builds base and query params', () => {
-    expect(paymentResultDeepLink()).toBe('sarh://payment/result');
+    expect(paymentResultDeepLink()).toBe('malahm://payment/result');
     const url = paymentResultDeepLink({
       paymentId: 'p1',
       context: 'boost',
       gatewayReturn: '1',
     });
-    expect(url).toContain('sarh://payment/result?');
+    expect(url).toContain('malahm://payment/result?');
     expect(url).toContain('paymentId=p1');
     expect(url).toContain('context=boost');
   });

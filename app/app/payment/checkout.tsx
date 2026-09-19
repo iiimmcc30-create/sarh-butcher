@@ -207,7 +207,7 @@ export default function PaymentCheckoutScreen() {
               sharedCookiesEnabled
               thirdPartyCookiesEnabled
               setSupportMultipleWindows={false}
-              originWhitelist={['https://*', 'http://*', 'sarh://*']}
+              originWhitelist={['https://*', 'http://*', 'malahm://*', 'sarh://*']}
               allowsInlineMediaPlayback
               {...(Platform.OS === 'android'
                 ? { mixedContentMode: 'always' as const }

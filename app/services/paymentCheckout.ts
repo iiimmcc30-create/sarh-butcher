@@ -3,7 +3,8 @@ import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 
-const APP_SCHEME = 'sarh';
+const APP_SCHEME = 'malahm';
+const LEGACY_SARH_SCHEME = 'sarh';
 
 type CheckoutOutcome = 'success' | 'cancel' | 'dismiss';
 
@@ -39,12 +40,14 @@ export function isPaymentReturnUrl(url: string): 'result' | 'cancel' | null {
   const lower = url.toLowerCase();
   if (
     lower.startsWith(`${APP_SCHEME}://payment/cancel`) ||
+    lower.startsWith(`${LEGACY_SARH_SCHEME}://payment/cancel`) ||
     lower.includes('/payment/cancel')
   ) {
     return 'cancel';
   }
   if (
     lower.startsWith(`${APP_SCHEME}://payment/result`) ||
+    lower.startsWith(`${LEGACY_SARH_SCHEME}://payment/result`) ||
     lower.includes('/payment/result')
   ) {
     return 'result';
