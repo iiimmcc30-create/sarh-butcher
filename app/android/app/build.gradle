@@ -195,6 +195,7 @@ dependencies {
     }
 }
 
-// FCM: operator-supplied google-services.json (gitignored) must be present at
-// android/app/google-services.json and referenced from app.json.
-apply plugin: 'com.google.gms.google-services'
+// Preview/test APK: keep google-services optional. The last successful EAS
+// Android build failed after this plugin was enabled. Push stays off until
+// a follow-up FCM-enabled build is confirmed.
+// apply plugin: 'com.google.gms.google-services'
