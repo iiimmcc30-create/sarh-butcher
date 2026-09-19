@@ -47,6 +47,8 @@ export function validateProductionEnv(): void {
       'NI_WEBHOOK_SECRET',
       'APP_URL',
       'CRON_SECRET',
+      'SECRETS_ENCRYPTION_KEY',
+      'JWT_ISSUER',
     ]),
   );
 
@@ -57,7 +59,7 @@ export function validateProductionEnv(): void {
     }
     if (/railway\.app|onrender\.com/i.test(appUrl)) {
       problems.push(
-        'APP_URL must not point at Railway/Render — use https://sarhsa.online',
+        'APP_URL must not point at Railway/Render — set the independent butcher APP_URL',
       );
     }
   }

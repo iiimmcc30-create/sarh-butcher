@@ -18,7 +18,7 @@ export function resolveSecretsEncryptionKey(): Buffer {
       'SECRETS_ENCRYPTION_KEY or JWT_SECRET (32+ chars) is required to encrypt secrets',
     );
   }
-  return createHash('sha256').update(`sarh-daftra-v1:${jwtSecret}`).digest();
+  return createHash('sha256').update(`butcherapp-daftra-v1:${jwtSecret}`).digest();
 }
 
 export function encryptSecret(plaintext: string): {

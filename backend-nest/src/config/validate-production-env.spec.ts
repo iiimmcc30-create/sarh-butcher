@@ -57,6 +57,8 @@ describe('validateProductionEnv', () => {
     process.env.REDIS_HOST = 'redis';
     process.env.APP_URL = 'https://sarhsa.online';
     process.env.CRON_SECRET = 'cron-secret-value';
+    process.env.JWT_ISSUER = 'malahm-sarh';
+    process.env.SECRETS_ENCRYPTION_KEY = 'z'.repeat(32);
     process.env.DEV_OTP = 'true';
 
     expect(() => validateProductionEnv()).toThrow(/DEV_OTP/);
@@ -82,6 +84,8 @@ describe('validateProductionEnv', () => {
     process.env.REDIS_HOST = 'redis';
     process.env.APP_URL = 'https://sarhsa.online';
     process.env.CRON_SECRET = 'cron-secret-value';
+    process.env.JWT_ISSUER = 'malahm-sarh';
+    process.env.SECRETS_ENCRYPTION_KEY = 'z'.repeat(32);
     delete process.env.DEV_OTP;
 
     expect(() => validateProductionEnv()).not.toThrow();
@@ -105,6 +109,8 @@ describe('validateProductionEnv', () => {
     process.env.CLOUDINARY_API_SECRET = 's';
     process.env.APP_URL = 'https://sarhsa.online';
     process.env.CRON_SECRET = 'cron-secret-value';
+    process.env.JWT_ISSUER = 'malahm-sarh';
+    process.env.SECRETS_ENCRYPTION_KEY = 'z'.repeat(32);
     delete process.env.REDIS_HOST;
     process.env.REDIS_URL = 'redis://red-xxxx:6379';
     delete process.env.DEV_OTP;
@@ -132,6 +138,8 @@ describe('validateProductionEnv', () => {
     process.env.REDIS_URL = 'redis://localhost:6379';
     process.env.APP_URL = 'https://sarhsa.online';
     process.env.CRON_SECRET = 'cron-secret-value';
+    process.env.JWT_ISSUER = 'malahm-sarh';
+    process.env.SECRETS_ENCRYPTION_KEY = 'z'.repeat(32);
     delete process.env.DEV_OTP;
 
     expect(() => validateProductionEnv()).not.toThrow();
@@ -156,6 +164,8 @@ describe('validateProductionEnv', () => {
     process.env.REDIS_HOST = 'redis';
     process.env.APP_URL = 'https://sarh-app.up.railway.app';
     process.env.CRON_SECRET = 'cron-secret-value';
+    process.env.JWT_ISSUER = 'malahm-sarh';
+    process.env.SECRETS_ENCRYPTION_KEY = 'z'.repeat(32);
     delete process.env.DEV_OTP;
 
     expect(() => validateProductionEnv()).toThrow(/APP_URL/);
@@ -180,6 +190,8 @@ describe('validateProductionEnv', () => {
     process.env.REDIS_HOST = 'redis';
     process.env.APP_URL = 'https://sarh-api.onrender.com';
     process.env.CRON_SECRET = 'cron-secret-value';
+    process.env.JWT_ISSUER = 'malahm-sarh';
+    process.env.SECRETS_ENCRYPTION_KEY = 'z'.repeat(32);
     delete process.env.DEV_OTP;
 
     expect(() => validateProductionEnv()).toThrow(/APP_URL/);
@@ -203,6 +215,8 @@ describe('validateProductionEnv', () => {
     process.env.CLOUDINARY_API_SECRET = 's';
     process.env.REDIS_HOST = 'redis';
     process.env.APP_URL = 'https://sarhsa.online';
+    process.env.JWT_ISSUER = 'malahm-sarh';
+    process.env.SECRETS_ENCRYPTION_KEY = 'z'.repeat(32);
     delete process.env.CRON_SECRET;
     delete process.env.DEV_OTP;
 

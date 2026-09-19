@@ -12,6 +12,7 @@ import { Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import type { JwtPayload } from '../common/types/jwt-payload.interface';
 import { LoggerService } from '../common/services/logger.service';
+import { butcherUserRoom } from '../redis/redis-key';
 import {
   ChatReadDto,
   ChatSendDto,
@@ -72,9 +73,7 @@ export class AppGateway
         { userId: user.userId, socketId: client.id },
         'Socket connected',
       );
-      void client.join(
-        `${process.env.REDIS_KEY_PREFIX || 'butcherapp:'}user:${user.userId}`,
-      );
+      void client.join(butcherUserRoom(user.userId));
       await this.socketService.onUserConnected(user.userId, client.id);
     } catch {
       client.disconnect(true);

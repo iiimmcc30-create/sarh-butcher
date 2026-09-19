@@ -767,6 +767,7 @@ model Butcher {
   commercialReg       String?
   subscriptionActive  Boolean             @default(false)
   subscriptionExpiry  DateTime?
+  commissionExempt    Boolean             @default(false)
   rating              Float               @default(0)
   reviewCount         Int                 @default(0)
   orderCompletionRate Float               @default(100)

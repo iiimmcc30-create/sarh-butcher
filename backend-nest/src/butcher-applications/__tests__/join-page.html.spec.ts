@@ -15,7 +15,7 @@ describe('public butcher join HTML', () => {
     expect(html).toContain('/api/auth/verify-otp');
     expect(html).toContain('/api/butcher-applications/join');
     expect(html).toContain("purpose: 'join'");
-    expect(html).toContain('https://sarhsa.online/butcher/login');
+    expect(html).toContain('/butcher/login');
     expect(html).toContain('/join/success');
     expect(html).not.toMatch(/APIKEY|apiKey|password_hash|JWT_SECRET/i);
   });

@@ -32,9 +32,12 @@ describe('Daftra OAuth config + documented password grant', () => {
     process.env.DAFTRA_CLIENT_ID = 'cid';
     process.env.DAFTRA_CLIENT_SECRET = 'csecret';
     process.env.DAFTRA_OAUTH_REDIRECT_URI =
-      'https://sarhsa.online/api/butchers/daftra/oauth/callback';
+      'https://butcher.example/api/butchers/daftra/oauth/callback';
     const cfg = assertDaftraOAuthClientConfigured();
-    expect(cfg.redirectUri).toBe(DAFTRA_OAUTH_REDIRECT_URI_DEFAULT);
+    expect(cfg.redirectUri).toBe(
+      'https://butcher.example/api/butchers/daftra/oauth/callback',
+    );
+    expect(DAFTRA_OAUTH_REDIRECT_URI_DEFAULT).not.toContain('sarhsa.online');
   });
 
   it('builds documented token URL under /api2/oauth/token', () => {

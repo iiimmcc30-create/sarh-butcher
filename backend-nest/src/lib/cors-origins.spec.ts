@@ -25,21 +25,23 @@ describe('cors origins', () => {
 
   it('never treats unknown origins as allowed (credentials require exact origin)', () => {
     process.env.NODE_ENV = 'production';
-    process.env.ALLOWED_ORIGINS = 'https://sarhsa.online';
+    process.env.ALLOWED_ORIGINS = 'https://butcher.example';
     expect(isAllowedCorsOrigin('https://evil.example')).toBe(false);
-    expect(isAllowedCorsOrigin('https://sarhsa.online')).toBe(true);
+    expect(isAllowedCorsOrigin('https://butcher.example')).toBe(true);
+    expect(isAllowedCorsOrigin('https://sarhsa.online')).toBe(false);
   });
 
   it('strips railway and localhost from production CORS origins', () => {
     process.env.NODE_ENV = 'production';
     process.env.ALLOWED_ORIGINS =
-      'http://localhost:8081,https://sarh-app.up.railway.app,https://sarhsa.online';
+      'http://localhost:8081,https://sarh-app.up.railway.app,https://butcher.example';
     const origins = resolveCorsOrigins();
-    expect(origins).toContain('https://sarhsa.online');
-    expect(origins).toContain('https://www.sarhsa.online');
+    expect(origins).toContain('https://butcher.example');
+    expect(origins).not.toContain('https://sarhsa.online');
+    expect(origins).not.toContain('https://www.sarhsa.online');
     expect(origins.some((origin) => origin.includes('railway'))).toBe(false);
     expect(origins.some((origin) => origin.includes('localhost'))).toBe(false);
-    expect(isAllowedCorsOrigin('https://sarhsa.online')).toBe(true);
+    expect(isAllowedCorsOrigin('https://butcher.example')).toBe(true);
     expect(isAllowedCorsOrigin('https://evil.example')).toBe(false);
     expect(isAllowedCorsOrigin(undefined)).toBe(true);
   });
@@ -72,7 +74,7 @@ describe('cors origins', () => {
     process.env.FRONTEND_URL = 'http://localhost:8081';
     const origins = resolveCorsOrigins();
     expect(origins.some((origin) => origin.includes('localhost'))).toBe(false);
-    expect(origins).toContain('https://sarhsa.online');
+    expect(origins).not.toContain('https://sarhsa.online');
   });
 
   it('allows a listed Vercel default hostname in production', () => {
@@ -97,7 +99,7 @@ describe('cors origins', () => {
     process.env.BUTCHER_DASHBOARD_VERCEL_HOSTS = '';
     process.env.BUTCHER_DASHBOARD_ALLOW_VERCEL = 'true';
     expect(isAllowedCorsOrigin('https://any-preview.vercel.app')).toBe(false);
-    expect(isAllowedCorsOrigin('https://sarhsa.online')).toBe(true);
+    expect(isAllowedCorsOrigin('https://sarhsa.online')).toBe(false);
   });
 
   it('allows *.vercel.app in non-production when the preview flag is on', () => {

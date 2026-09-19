@@ -7,6 +7,7 @@ import { JwtTokenService } from '../../auth/services/jwt-token.service';
 import type { JwtPayload } from '../../common/types/jwt-payload.interface';
 import { LoggerService } from '../../common/services/logger.service';
 import { RedisCacheService } from '../../redis/services/redis-cache.service';
+import { butcherUserRoom } from '../../redis/redis-key';
 import { RedisSessionService } from '../../redis/services/redis-session.service';
 import { AppNotificationsService } from '../../queue/services/app-notifications.service';
 import {
@@ -291,7 +292,7 @@ export class SocketGatewayService {
     const server = this.emitService.getServer();
     server
       ?.to(
-        `${process.env.REDIS_KEY_PREFIX || 'butcherapp:'}user:${data.receiverId}`,
+        butcherUserRoom(data.receiverId),
       )
       .emit('chat:typing', { threadId: data.threadId, userId: user.userId });
     return null;

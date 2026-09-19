@@ -25,7 +25,7 @@ export const DAFTRA_OAUTH_PROVIDER = 'daftra';
 
 /** Registered Redirect URI (must match Daftra Developers + ENV exactly). */
 export const DAFTRA_OAUTH_REDIRECT_URI_DEFAULT =
-  'https://sarhsa.online/api/butchers/daftra/oauth/callback';
+  'http://localhost:3001/api/butchers/daftra/oauth/callback';
 
 export type DaftraOAuthEnvConfig = {
   clientId: string;

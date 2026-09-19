@@ -305,7 +305,7 @@ export function renderButcherJoinPage(): string {
       <p class="err" id="error"></p>
       <button class="btn" type="submit" id="submit">إرسال طلب الانضمام</button>
     </form>
-    <a class="login" href="https://sarhsa.online/butcher/login">لديك حساب ملحمة؟ تسجيل الدخول</a>
+    <a class="login" href="/butcher/login">لديك حساب ملحمة؟ تسجيل الدخول</a>
     <p class="foot">لن يتم إنشاء حساب دفترة في هذه المرحلة.</p>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -527,7 +527,7 @@ export function renderButcherJoinSuccessPage(input: {
       <div class="summary"><span>الحالة</span><b>قيد المراجعة</b></div>
     </section>
     <a class="btn" href="/join" style="display:block;text-align:center;text-decoration:none;">العودة لصفحة الانضمام</a>
-    <a class="login" href="https://sarhsa.online/butcher/login">تسجيل الدخول إلى لوحة الملحمة</a>
+    <a class="login" href="/butcher/login">تسجيل الدخول إلى لوحة الملحمة</a>
   `;
   return shell('تم استلام طلب الانضمام', body);
 }

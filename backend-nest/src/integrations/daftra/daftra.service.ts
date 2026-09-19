@@ -850,7 +850,7 @@ export class DaftraService {
     state?: string;
     error?: string;
   }): Promise<{ redirectUrl: string }> {
-    const appUrl = (process.env.APP_URL || 'https://sarhsa.online').replace(
+    const appUrl = (process.env.APP_URL || 'http://localhost:3001').replace(
       /\/$/,
       '',
     );

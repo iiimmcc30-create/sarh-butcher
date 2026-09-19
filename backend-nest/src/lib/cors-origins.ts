@@ -1,7 +1,4 @@
-const PRODUCTION_ORIGINS = [
-  'https://sarhsa.online',
-  'https://www.sarhsa.online',
-];
+const PRODUCTION_ORIGINS: string[] = [];
 
 const STALE_ORIGIN_MARKERS = ['railway.app'];
 

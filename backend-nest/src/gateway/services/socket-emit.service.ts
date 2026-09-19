@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Server } from 'socket.io';
+import { butcherUserRoom } from '../../redis/redis-key';
 
 @Injectable()
 export class SocketEmitService {
@@ -14,7 +15,7 @@ export class SocketEmitService {
   }
 
   private userRoom(userId: string): string {
-    return `${process.env.REDIS_KEY_PREFIX || 'butcherapp:'}user:${userId}`;
+    return butcherUserRoom(userId);
   }
 
   emitToUser(userId: string, event: string, data: unknown): void {
