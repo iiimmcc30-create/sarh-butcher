@@ -78,6 +78,8 @@ These modules were copied because Admin/Payments/Auth still import them. They ar
 
 Not run in Phase 1: full `nest build` against slim AppModule, E2E against live NI, Prisma migrate on a real empty DB, Expo device, production webhook.
 
+Phase 3 live validation: see `docs/PHASE3.md`.
+
 ## Unresolved after Phase 2
 
 1. GitHub remote `iiimmcc30-create/sarh-butcher` — create permission denied for this agent token (403). Local repo is ready to push. No origin.
