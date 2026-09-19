@@ -195,4 +195,6 @@ dependencies {
     }
 }
 
-apply plugin: 'com.google.gms.google-services'
+// Phase 4 test APK: no FCM/google-services.json yet. Applying this plugin
+// without a file fails Gradle. Push stays disabled until new Firebase creds exist.
+// apply plugin: 'com.google.gms.google-services'
