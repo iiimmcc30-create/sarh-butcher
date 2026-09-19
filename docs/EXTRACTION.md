@@ -65,6 +65,19 @@ These modules were copied because Admin/Payments/Auth still import them. They ar
 | JWT | same code path; **new secrets required** — tokens from SARH are invalid here |
 | Boot navigation | authenticated/guest market entry → `/butchers` not `/(tabs)` |
 
+## Phase 1 test evidence (local)
+
+| Suite | Result |
+|---|---|
+| Prisma `validate` | pass |
+| `backend-nest` butchers + banners + heartbeat + payment-redirect | 12 suites / 117 tests pass |
+| `backend-nest` payments + Daftra + applications + commissions | 35 suites / 283 tests pass |
+| `butcher-dashboard` | 14 suites / 58 tests pass |
+| Expo butcher checkout/directory/join | 5 suites / 28 tests pass |
+| Admin butcher docs + Daftra panel | 2 suites / 3 tests pass |
+
+Not run in Phase 1: full `nest build` against slim AppModule, E2E against live NI, Prisma migrate on a real empty DB, Expo device, production webhook.
+
 ## Unresolved (next phase)
 
 1. GitHub remote `iiimmcc30-create/sarh-butcher` — create permission denied for this agent token (403). Local repo is ready to push.
