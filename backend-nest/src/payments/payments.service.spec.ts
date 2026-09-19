@@ -3,12 +3,6 @@ import { PaymentsService } from './payments.service';
 import { PaymentsRepository } from './repositories/payments.repository';
 import { LoggerService } from '../common/services/logger.service';
 import { AppNotificationsService } from '../queue/services/app-notifications.service';
-import { SubscriptionCacheService } from '../subscriptions/services/subscription-cache.service';
-import { SubscriptionLifecycleService } from '../subscriptions/services/subscription-lifecycle.service';
-import { SubscriptionEntitlementService } from '../subscriptions/services/subscription-entitlement.service';
-import { RedisCacheService } from '../redis/services/redis-cache.service';
-import { PlansService } from '../plans/plans.service';
-import { PaidServicesService } from '../settings/paid-services.service';
 import { IntegrationCheckoutService } from '../integrations/services/integration-checkout.service';
 import { SocketEmitService } from '../gateway/services/socket-emit.service';
 import { fetchNiOrderResolved, verifyNiOrderForCheckout } from './ni-client';
@@ -69,25 +63,6 @@ describe('PaymentsService', () => {
     notifyUser: jest.fn(),
     notifyUsers: jest.fn(),
   };
-  const subscriptionCache = { invalidate: jest.fn() };
-  const subscriptionLifecycle = {
-    shouldBlockPayment: jest.fn().mockReturnValue(false),
-    notifyRenewalSuccess: jest.fn(),
-    notifyRenewalFailed: jest.fn(),
-    downgradeUser: jest.fn(),
-  };
-  const entitlements = {
-    getAudienceForUser: jest.fn().mockResolvedValue('USER'),
-  };
-  const plans = {
-    getUpgradablePlans: jest.fn().mockReturnValue(['sarh-pro']),
-    getPlanPrice: jest.fn().mockReturnValue(100),
-  };
-  const cache = { delPattern: jest.fn(), del: jest.fn() };
-  const paidServices = {
-    assertListingFeesEnabled: jest.fn().mockResolvedValue(undefined),
-  };
-
   beforeEach(async () => {
     jest.clearAllMocks();
     const moduleRef = await Test.createTestingModule({
@@ -96,15 +71,6 @@ describe('PaymentsService', () => {
         { provide: PaymentsRepository, useValue: repo },
         { provide: LoggerService, useValue: logger },
         { provide: AppNotificationsService, useValue: notifications },
-        { provide: SubscriptionCacheService, useValue: subscriptionCache },
-        {
-          provide: SubscriptionLifecycleService,
-          useValue: subscriptionLifecycle,
-        },
-        { provide: SubscriptionEntitlementService, useValue: entitlements },
-        { provide: PlansService, useValue: plans },
-        { provide: RedisCacheService, useValue: cache },
-        { provide: PaidServicesService, useValue: paidServices },
         {
           provide: SocketEmitService,
           useValue: { emitToUser: jest.fn(), getServer: jest.fn() },
@@ -127,17 +93,13 @@ describe('PaymentsService', () => {
     service = moduleRef.get(PaymentsService);
   });
 
-  it('requires a listing reference for commission payments', async () => {
+  it('rejects SARH listing-fee and commission checkout types', async () => {
     await expect(
       service.initiate(
         { userId: 'u1', role: 'USER' } as never,
         { amount: 25, method: 'visa', type: 'commission' } as never,
       ),
-    ).rejects.toMatchObject({ error: 'ref_required', status: 400 });
-  });
-
-  it('rejects listing fee payment when the fee is not owned or already paid', async () => {
-    repo.findPendingFee.mockResolvedValue(null);
+    ).rejects.toMatchObject({ error: 'unsupported_payment_type', status: 400 });
 
     await expect(
       service.initiate(
@@ -150,67 +112,7 @@ describe('PaymentsService', () => {
           referenceId: 'listing-b',
         } as never,
       ),
-    ).rejects.toMatchObject({ error: 'fee_not_found', status: 404 });
-  });
-
-  it('quotes 1% of sale amount 10000 → 100 and stores listing_fee', async () => {
-    repo.findPendingFee.mockResolvedValue({
-      id: 'fee-a',
-      listingId: 'listing-a',
-      status: 'pending',
-      commission: 50,
-    });
-    repo.createPendingPaymentOrReturnExisting.mockResolvedValue({
-      payment: { id: 'pay-1', orderId: 'SFAT-U1-TEST' },
-    });
-    jest.spyOn(service as any, 'createCheckoutForPayment').mockResolvedValue({
-      paymentId: 'pay-1',
-      orderId: 'SFAT-U1-TEST',
-      checkoutUrl: 'https://checkout.example/pay-1',
-      status: 'pending',
-      devMode: true,
-    } as never);
-
-    const result = await service.initiate(
-      { userId: 'u1', role: 'USER' } as never,
-      {
-        amount: 100,
-        saleAmount: 10000,
-        method: 'visa',
-        type: 'listing_fee',
-        referenceId: 'listing-a',
-      } as never,
-    );
-
-    expect(repo.recordListingFeeSaleAmount).toHaveBeenCalledWith(
-      'fee-a',
-      'u1',
-      10000,
-      100,
-    );
-    expect(result.paymentId).toBe('pay-1');
-  });
-
-  it('rejects invalid sale amounts', async () => {
-    repo.findPendingFee.mockResolvedValue({
-      id: 'fee-a',
-      listingId: 'listing-a',
-      status: 'pending',
-      commission: 1,
-    });
-
-    await expect(
-      service.initiate(
-        { userId: 'u1', role: 'USER' } as never,
-        {
-          amount: 1,
-          saleAmount: -5,
-          method: 'visa',
-          type: 'listing_fee',
-          referenceId: 'listing-a',
-        } as never,
-      ),
-    ).rejects.toMatchObject({ error: 'invalid_sale_amount', status: 400 });
+    ).rejects.toMatchObject({ error: 'unsupported_payment_type', status: 400 });
   });
 
   it('rejects order_commission as a customer checkout type', async () => {
@@ -224,7 +126,7 @@ describe('PaymentsService', () => {
           referenceId: 'order-1',
         } as never,
       ),
-    ).rejects.toMatchObject({ error: 'invalid_type', status: 400 });
+    ).rejects.toMatchObject({ error: 'unsupported_payment_type', status: 400 });
   });
 
   it('returns 500 when a verified webhook fails during processing', async () => {
@@ -278,11 +180,10 @@ describe('PaymentsService', () => {
   });
 
   it('recovers a stale pending payment that never received a checkout URL', async () => {
-    repo.findPendingFee.mockResolvedValue({
-      id: 'fee-a',
-      listingId: 'listing-a',
-      status: 'pending',
-      commission: 1,
+    repo.findPayableButcherCheckout.mockResolvedValue({
+      id: 'chk-1',
+      totalPrice: 80,
+      currency: 'SAR',
     });
     repo.createPendingPaymentOrReturnExisting.mockResolvedValue({
       existingPending: {
@@ -309,11 +210,10 @@ describe('PaymentsService', () => {
     const result = await service.initiate(
       { userId: 'u1', role: 'USER' } as never,
       {
-        amount: 100,
-        saleAmount: 10000,
-        method: 'visa',
-        type: 'listing_fee',
-        referenceId: 'listing-a',
+        amount: 80,
+        method: 'mada',
+        type: 'butcher_checkout',
+        referenceId: 'chk-1',
       } as never,
     );
 
@@ -487,12 +387,11 @@ describe('PaymentsService', () => {
     expect(repo.findUnpaidButcherOrder).toHaveBeenCalledWith('ord-1', 'u1');
   });
 
-  it('does not archive or recreate checkout when NI reports already_paid (listing fee)', async () => {
-    repo.findPendingFee.mockResolvedValue({
-      id: 'fee-a',
-      listingId: 'listing-a',
-      status: 'pending',
-      commission: 1,
+  it('does not archive or recreate checkout when NI reports already_paid (butcher checkout)', async () => {
+    repo.findPayableButcherCheckout.mockResolvedValue({
+      id: 'chk-1',
+      totalPrice: 80,
+      currency: 'SAR',
     });
     repo.createPendingPaymentOrReturnExisting.mockResolvedValue({
       existingPending: {
@@ -529,11 +428,10 @@ describe('PaymentsService', () => {
       const result = await service.initiate(
         { userId: 'u1', role: 'USER' } as never,
         {
-          amount: 100,
-          saleAmount: 10000,
-          method: 'visa',
-          type: 'listing_fee',
-          referenceId: 'listing-a',
+          amount: 80,
+          method: 'mada',
+          type: 'butcher_checkout',
+          referenceId: 'chk-1',
         } as never,
       );
 
@@ -845,41 +743,20 @@ describe('PaymentsService', () => {
     expect(notifications.notifyUser).not.toHaveBeenCalled();
   });
 
-  it('accepts a client-declared saleAmount of 1 (no server-side sale source)', async () => {
-    repo.findPendingFee.mockResolvedValue({
-      id: 'fee-a',
-      listingId: 'listing-a',
-      status: 'pending',
-      commission: 1,
-    });
-    repo.createPendingPaymentOrReturnExisting.mockResolvedValue({
-      payment: { id: 'pay-1', orderId: 'SFAT-U1-TEST' },
-    });
-    jest.spyOn(service as any, 'createCheckoutForPayment').mockResolvedValue({
-      paymentId: 'pay-1',
-      orderId: 'SFAT-U1-TEST',
-      checkoutUrl: 'https://checkout.example/pay-1',
-      status: 'pending',
-      devMode: true,
-    } as never);
-
-    await service.initiate(
-      { userId: 'u1', role: 'USER' } as never,
-      {
-        amount: 0.01,
-        saleAmount: 1,
-        method: 'visa',
-        type: 'listing_fee',
-        referenceId: 'listing-a',
-      } as never,
-    );
-
-    expect(repo.recordListingFeeSaleAmount).toHaveBeenCalledWith(
-      'fee-a',
-      'u1',
-      1,
-      0.01,
-    );
+  it('rejects leftover listing-fee checkout even with a sale amount', async () => {
+    await expect(
+      service.initiate(
+        { userId: 'u1', role: 'USER' } as never,
+        {
+          amount: 0.01,
+          saleAmount: 1,
+          method: 'visa',
+          type: 'listing_fee',
+          referenceId: 'listing-a',
+        } as never,
+      ),
+    ).rejects.toMatchObject({ error: 'unsupported_payment_type', status: 400 });
+    expect(repo.recordListingFeeSaleAmount).not.toHaveBeenCalled();
   });
 
   it('sync after webhook returns paid + needsReconciliation without a butcherOrder', async () => {

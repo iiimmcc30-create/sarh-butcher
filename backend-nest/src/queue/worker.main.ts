@@ -6,7 +6,7 @@ import { validateProductionEnv } from '../config/validate-production-env';
 import { WorkerModule } from './worker.module';
 import { WorkerCronService } from './services/worker-cron.service';
 import { WorkerHeartbeatService } from './services/worker-heartbeat.service';
-import { FeeCheckQueueService } from './services/fee-check-queue.service';
+import { EmailQueueService } from './services/email-queue.service';
 import { RedisCacheService } from '../redis/services/redis-cache.service';
 
 async function bootstrap() {
@@ -49,8 +49,13 @@ async function bootstrap() {
   app.get(WorkerHeartbeatService).start();
 
   try {
-    const fees = app.get(FeeCheckQueueService);
-    const job = await fees.addProbeJob();
+    const emails = app.get(EmailQueueService);
+    const job = await emails.addEmail({
+      to: 'probe@localhost',
+      subject: 'butcherapp-probe',
+      template: 'probe',
+      variables: {},
+    });
     logger.info({ jobId: job?.id ?? null }, 'BullMQ probe job enqueued');
   } catch (err) {
     logger.warn(

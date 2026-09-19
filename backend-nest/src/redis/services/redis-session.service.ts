@@ -4,6 +4,7 @@ import {
   isRedisCircuitOpen,
   tripRedisCircuit,
 } from '../redis-connection';
+import { butcherRedisKey } from '../redis-key';
 
 @Injectable()
 export class RedisSessionService {
@@ -21,7 +22,12 @@ export class RedisSessionService {
   async set(key: string, value: unknown, ttl: number): Promise<void> {
     if (!this.isEnabled()) return;
     try {
-      await this.getClient().set(key, JSON.stringify(value), 'EX', ttl);
+      await this.getClient().set(
+        butcherRedisKey(key),
+        JSON.stringify(value),
+        'EX',
+        ttl,
+      );
     } catch {
       tripRedisCircuit();
     }
@@ -32,7 +38,7 @@ export class RedisSessionService {
     try {
       const client = this.getClient();
       if (client.status !== 'ready') return null;
-      const val = await client.get(key);
+      const val = await client.get(butcherRedisKey(key));
       return val ? (JSON.parse(val) as T) : null;
     } catch {
       tripRedisCircuit();
@@ -43,7 +49,7 @@ export class RedisSessionService {
   async del(...keys: string[]): Promise<void> {
     if (!keys.length || !this.isEnabled()) return;
     try {
-      await this.getClient().del(...keys);
+      await this.getClient().del(...keys.map(butcherRedisKey));
     } catch {
       /* non-critical */
     }

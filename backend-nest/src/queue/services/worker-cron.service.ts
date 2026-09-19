@@ -1,13 +1,11 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Optional } from '@nestjs/common';
 import axios from 'axios';
 import { LoggerService } from '../../common/services/logger.service';
 import { WorkerCronRepository } from '../repositories/worker-cron.repository';
 import { RedisCacheService } from '../../redis/services/redis-cache.service';
-import { FeeCheckQueueService } from './fee-check-queue.service';
-import { SubscriptionQueueService } from './subscription-queue.service';
-import { KnowledgeCenterService } from '../../knowledge/services/knowledge-center.service';
 import { DaftraService } from '../../integrations/daftra/daftra.service';
 import { cronCleanupAuthHeader } from '../../admin/lib/cron-auth';
+import { butcherRedisKey } from '../../redis/redis-key';
 
 export const DAFTRA_PRODUCT_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 export const DAFTRA_PRODUCT_SYNC_LOCK_TTL_SEC = 9 * 60;
@@ -23,10 +21,7 @@ export class WorkerCronService implements OnModuleDestroy {
   constructor(
     private readonly cronRepo: WorkerCronRepository,
     private readonly cache: RedisCacheService,
-    private readonly feeCheckQueue: FeeCheckQueueService,
-    private readonly subscriptionQueue: SubscriptionQueueService,
-    private readonly knowledge: KnowledgeCenterService,
-    private readonly daftra: DaftraService,
+    @Optional() private readonly daftra: DaftraService,
     private readonly logger: LoggerService,
   ) {
     this.interval = setInterval(() => void this.tick(), 60 * 60 * 1000);
@@ -39,10 +34,7 @@ export class WorkerCronService implements OnModuleDestroy {
       DAFTRA_PRODUCT_SYNC_INTERVAL_MS,
     );
     this.logger.info({}, '🔧 Workers started');
-    // Kick an initial delayed sync so knowledge starts without waiting a full hour
-    setTimeout(() => void this.runKnowledgeSyncCron(), 20_000);
     setTimeout(() => void this.pingPublicHealth(), 15_000);
-    // First Daftra product poll shortly after boot (then every 10 minutes)
     setTimeout(() => void this.runDaftraProductSyncCron(), 45_000);
   }
 
@@ -87,32 +79,6 @@ export class WorkerCronService implements OnModuleDestroy {
     }
   }
 
-  private async runFeeCheckCron(): Promise<void> {
-    if (!this.cache.isEnabled()) return;
-
-    const lockKey = 'cron:fee_check:lock';
-    const lockTTL = 120;
-
-    try {
-      const redis = this.cache.getClient();
-      const acquired = await redis.set(lockKey, '1', 'EX', lockTTL, 'NX');
-      if (!acquired) {
-        this.logger.debug(
-          {},
-          'Fee check cron: lock not acquired, another worker is running it',
-        );
-        return;
-      }
-
-      this.logger.info(
-        {},
-        'Listing fee cron: no overdue enforcement (covenant-only 14-day settlement)',
-      );
-    } catch (err) {
-      this.logger.error({ err }, 'Fee check cron error');
-    }
-  }
-
   private async runDbCleanupCron(): Promise<void> {
     const appUrl = (process.env.APP_URL || 'http://localhost:3001').replace(
       /\/$/,
@@ -127,7 +93,7 @@ export class WorkerCronService implements OnModuleDestroy {
         'APP_URL points at localhost in production — cleanup will not reach the API',
       );
     }
-    await this.withLock('cron:db_cleanup:lock', 300, async () => {
+    await this.withLock(butcherRedisKey('cron:db_cleanup:lock'), 300, async () => {
       const headers = cronCleanupAuthHeader(process.env.CRON_SECRET);
       if (!headers) {
         this.logger.error(
@@ -160,44 +126,8 @@ export class WorkerCronService implements OnModuleDestroy {
     });
   }
 
-  private async runSubscriptionCron(): Promise<void> {
-    await this.withLock('cron:subscription:lock', 300, async () => {
-      this.logger.info({}, 'Running subscription maintenance cron');
-      await Promise.all([
-        this.subscriptionQueue.addSubscriptionJob({ kind: 'expire' }),
-        this.subscriptionQueue.addSubscriptionJob({ kind: 'reminders' }),
-      ]);
-    });
-  }
-
-  private async runWeeklyLiveMinutesReset(): Promise<void> {
-    await this.withLock('cron:subscription:weekly_reset', 300, async () => {
-      await this.subscriptionQueue.addSubscriptionJob({
-        kind: 'reset_live_minutes',
-      });
-    });
-  }
-
-  private async runKnowledgeSyncCron(): Promise<void> {
-    const run = async () => {
-      this.logger.info({}, 'Running knowledge center hourly sync');
-      await this.knowledge.syncAll();
-    };
-
-    if (!this.cache.isEnabled()) {
-      try {
-        await run();
-      } catch (err) {
-        this.logger.error({ err }, 'Knowledge sync cron error');
-      }
-      return;
-    }
-
-    await this.withLock('cron:knowledge_sync:lock', 50 * 60, run);
-  }
-
   /**
-   * Poll Daftra → Sarh products for every CONNECTED butcher.
+   * Poll Daftra → butcher products for every CONNECTED butcher.
    * Reuses DaftraService.syncProductsFromDaftra; one failure does not stop others.
    */
   async runDaftraProductSyncCron(): Promise<{
@@ -277,7 +207,7 @@ export class WorkerCronService implements OnModuleDestroy {
       return 'synced';
     }
 
-    const lockKey = `cron:daftra_products:${butcherId}`;
+    const lockKey = butcherRedisKey(`cron:daftra_products:${butcherId}`);
     const redis = this.cache.getClient();
     const acquired = await redis.set(
       lockKey,
@@ -305,11 +235,8 @@ export class WorkerCronService implements OnModuleDestroy {
     ].filter((url): url is string => Boolean(url?.trim()));
     if (fromEnv.length) return fromEnv;
     if (process.env.NODE_ENV !== 'production') return [];
-    // Hostinger production defaults (never Render cold-start keep-alive).
-    const appUrl = (process.env.APP_URL || 'https://sarhsa.online').replace(
-      /\/$/,
-      '',
-    );
+    const appUrl = (process.env.APP_URL || '').replace(/\/$/, '');
+    if (!appUrl) return [];
     return [`${appUrl}/api/health`, `${appUrl}/health`];
   }
 
@@ -341,21 +268,8 @@ export class WorkerCronService implements OnModuleDestroy {
   }
 
   private async tick(): Promise<void> {
-    if (this.shouldRun('fee_check', 9)) {
-      await this.runFeeCheckCron();
-    }
     if (this.shouldRun('db_cleanup', 3)) {
       await this.runDbCleanupCron();
     }
-    if (this.shouldRun('subscription', 6)) {
-      await this.runSubscriptionCron();
-    }
-    const now = new Date();
-    if (now.getDay() === 1 && this.shouldRun('subscription_weekly', 4)) {
-      await this.runWeeklyLiveMinutesReset();
-    }
-
-    // Knowledge Center: every hourly tick
-    await this.runKnowledgeSyncCron();
   }
 }

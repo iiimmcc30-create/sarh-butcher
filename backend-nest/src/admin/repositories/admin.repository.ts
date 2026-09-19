@@ -1,10 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma, Role, TicketStatus } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import {
-  BUTCHER_LISTING_COMMISSION_PERCENT,
-  BUTCHER_ORDER_COMMISSION_PERCENT,
-} from '../../lib/commissions';
+import { BUTCHER_ORDER_COMMISSION_PERCENT } from '../../lib/commissions';
 import {
   notDeleted,
   retentionCutoff,
@@ -985,10 +982,9 @@ export class AdminRepository {
         refunded: paymentsRefunded,
       },
       commission: {
-        listingCommissionRatePercent: BUTCHER_LISTING_COMMISSION_PERCENT,
+        listingCommissionRatePercent: 0,
         orderCommissionRatePercent: BUTCHER_ORDER_COMMISSION_PERCENT,
-        /** @deprecated Use listingCommissionRatePercent */
-        butcherStoreRatePercent: BUTCHER_LISTING_COMMISSION_PERCENT,
+        butcherStoreRatePercent: 0,
         listingFeesPaidTotal: money(listingFeesPaidAgg._sum.commission),
         listingFeesPaidCount: listingFeesPaidAgg._count._all,
         listingFeesOutstandingTotal: money(

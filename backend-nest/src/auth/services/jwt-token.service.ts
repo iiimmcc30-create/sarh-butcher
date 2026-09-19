@@ -13,6 +13,7 @@ export class JwtTokenService implements OnModuleInit {
   private jwtRefreshSecret!: string;
   private accessExpires!: string;
   private refreshExpires!: string;
+  private issuer!: string;
 
   constructor(private readonly config: ConfigService) {}
 
@@ -22,6 +23,7 @@ export class JwtTokenService implements OnModuleInit {
     this.accessExpires = this.config.get<string>('JWT_EXPIRES_IN') || '15m';
     this.refreshExpires =
       this.config.get<string>('JWT_REFRESH_EXPIRES_IN') || '30d';
+    this.issuer = this.config.get<string>('JWT_ISSUER') || 'malahm-sarh';
   }
 
   private requireSecret(name: string, min: number): string {
@@ -38,21 +40,27 @@ export class JwtTokenService implements OnModuleInit {
   signAccessToken(payload: AccessTokenClaims): string {
     return jwt.sign(payload, this.jwtSecret, {
       expiresIn: this.accessExpires,
+      issuer: this.issuer,
     } as jwt.SignOptions);
   }
 
   signRefreshToken(userId: string): string {
     return jwt.sign({ userId, jti: uuidv4() }, this.jwtRefreshSecret, {
       expiresIn: this.refreshExpires,
+      issuer: this.issuer,
     } as jwt.SignOptions);
   }
 
   verifyAccessToken(token: string): JwtPayload {
-    return jwt.verify(token, this.jwtSecret) as JwtPayload;
+    return jwt.verify(token, this.jwtSecret, {
+      issuer: this.issuer,
+    }) as JwtPayload;
   }
 
   verifyRefreshToken(token: string): { userId: string; jti: string } {
-    return jwt.verify(token, this.jwtRefreshSecret) as {
+    return jwt.verify(token, this.jwtRefreshSecret, {
+      issuer: this.issuer,
+    }) as {
       userId: string;
       jti: string;
     };

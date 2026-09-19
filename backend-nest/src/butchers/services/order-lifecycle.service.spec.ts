@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppNotificationsService } from '../../queue/services/app-notifications.service';
 import { SocketEmitService } from '../../gateway/services/socket-emit.service';
 import { ButcherRankingService } from './butcher-ranking.service';
-import { SubscriptionEntitlementService } from '../../subscriptions/services/subscription-entitlement.service';
+import { ButcherCommissionPolicy } from './butcher-commission.policy';
 import { ApiException } from '../../common/exceptions/api.exception';
 import { butcherOrderCommissionPaymentRef } from '../../lib/commissions';
 
@@ -31,8 +31,8 @@ describe('OrderLifecycleService', () => {
     onOrderCancelled: jest.fn().mockResolvedValue(undefined),
     onOrderDelivered: jest.fn().mockResolvedValue(undefined),
   };
-  const entitlements = {
-    getPermissionsForUser: jest.fn().mockResolvedValue({ storeCommission: 1 }),
+  const commissionPolicy = {
+    isExemptForUser: jest.fn().mockResolvedValue(false),
   };
 
   const lockedRow: {
@@ -63,9 +63,7 @@ describe('OrderLifecycleService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    entitlements.getPermissionsForUser.mockResolvedValue({
-      storeCommission: 1,
-    });
+    commissionPolicy.isExemptForUser.mockResolvedValue(false);
     const moduleRef = await Test.createTestingModule({
       providers: [
         OrderLifecycleService,
@@ -74,7 +72,7 @@ describe('OrderLifecycleService', () => {
         { provide: AppNotificationsService, useValue: notifications },
         { provide: SocketEmitService, useValue: sockets },
         { provide: ButcherRankingService, useValue: ranking },
-        { provide: SubscriptionEntitlementService, useValue: entitlements },
+        { provide: ButcherCommissionPolicy, useValue: commissionPolicy },
       ],
     }).compile();
 
@@ -521,9 +519,7 @@ describe('OrderLifecycleService', () => {
   });
 
   it('records zero order commission when butcher is subscription-exempt', async () => {
-    entitlements.getPermissionsForUser.mockResolvedValue({
-      storeCommission: 0,
-    });
+    commissionPolicy.isExemptForUser.mockResolvedValue(true);
     const tx = transitionTx({
       nextStatus: 'delivered',
       locked: { status: 'ready', paymentStatus: 'paid', totalPrice: 100 },

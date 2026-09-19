@@ -6,16 +6,10 @@ import {
   OnApplicationShutdown,
 } from '@nestjs/common';
 import crypto from 'crypto';
-import { PaymentReferenceType, PlanAudience } from '@prisma/client';
-import { normalizePlanSlug, type BillingCycle } from '../lib/plans';
+import { PaymentReferenceType } from '@prisma/client';
 import { throwApi } from '../common/exceptions/api.exception';
 import { LoggerService } from '../common/services/logger.service';
 import { AppNotificationsService } from '../queue/services/app-notifications.service';
-import { SubscriptionCacheService } from '../subscriptions/services/subscription-cache.service';
-import { SubscriptionLifecycleService } from '../subscriptions/services/subscription-lifecycle.service';
-import { SubscriptionEntitlementService } from '../subscriptions/services/subscription-entitlement.service';
-import { RedisCacheService } from '../redis/services/redis-cache.service';
-import { PlansService } from '../plans/plans.service';
 import type { JwtPayload } from '../common/types/jwt-payload.interface';
 import { InitiatePaymentDto } from './dto/payments.dto';
 import { PaymentsRepository } from './repositories/payments.repository';
@@ -35,13 +29,12 @@ import {
 } from './ni-client';
 import { IntegrationCheckoutService } from '../integrations/services/integration-checkout.service';
 import { redactSensitive } from '../integrations/utils/redact.util';
-import { PaidServicesService } from '../settings/paid-services.service';
 import { SocketEmitService } from '../gateway/services/socket-emit.service';
-import {
-  calculateListingFeeAmount,
-  parsePositiveMoneyAmount,
-} from '../listings/listing-fee';
 import { Sentry } from '../shared/lib/sentry';
+
+function publicAppUrl(): string {
+  return (process.env.APP_URL || 'http://localhost:3001').replace(/\/$/, '');
+}
 
 function buildNIOrderReference(userId: string): string {
   const ts = Date.now().toString(36).toUpperCase();
@@ -124,12 +117,6 @@ export class PaymentsService
     private readonly repo: PaymentsRepository,
     private readonly logger: LoggerService,
     private readonly notifications: AppNotificationsService,
-    private readonly subscriptionCache: SubscriptionCacheService,
-    private readonly subscriptionLifecycle: SubscriptionLifecycleService,
-    private readonly entitlements: SubscriptionEntitlementService,
-    private readonly plans: PlansService,
-    private readonly cache: RedisCacheService,
-    private readonly paidServices: PaidServicesService,
     private readonly sockets: SocketEmitService,
     @Inject(forwardRef(() => IntegrationCheckoutService))
     private readonly integrationCheckout: IntegrationCheckoutService,
@@ -206,82 +193,12 @@ export class PaymentsService
     ]);
   }
 
-  private async invalidateListingCaches(listingId?: string) {
-    await this.cache.delPattern('listings:v2:*').catch(() => {});
-    if (listingId) {
-      await this.cache.del(`listing:${listingId}`).catch(() => {});
-    }
-  }
-
-  private async resolveAudience(userId: string): Promise<PlanAudience> {
-    return this.entitlements.getAudienceForUser(userId);
-  }
-
   private async checkReference(
     userId: string,
     type: string,
     referenceId: string,
     amount: number,
-    targetPlanId?: string,
-    saleAmount?: number,
   ): Promise<void> {
-    if (type === 'subscription') {
-      const sub = await this.repo.findSubscriptionForPayment(
-        referenceId,
-        userId,
-      );
-      if (!sub) throwApi(404, 'ref_not_found', 'الاشتراك غير موجود');
-      const audience = await this.resolveAudience(userId);
-      if (
-        targetPlanId &&
-        this.subscriptionLifecycle.shouldBlockPayment(
-          sub,
-          normalizePlanSlug(targetPlanId),
-          audience,
-        )
-      ) {
-        throwApi(
-          400,
-          'subscription_active',
-          'اشتراكك لا يزال سارياً حتى تاريخ التجديد',
-        );
-      }
-      return;
-    }
-
-    if (type === 'fee' || type === 'listing_fee' || type === 'commission') {
-      await this.paidServices.assertListingFeesEnabled();
-      const fee = await this.repo.findPendingFee(referenceId, userId);
-      if (!fee) {
-        throwApi(404, 'fee_not_found', 'الرسوم غير موجودة أو مسددة بالفعل');
-      }
-      const declared = parsePositiveMoneyAmount(saleAmount);
-      if (declared == null) {
-        throwApi(
-          400,
-          'invalid_sale_amount',
-          'أدخل مبلغ بيع صالحاً أكبر من صفر',
-        );
-      }
-      const payable = calculateListingFeeAmount(declared);
-      if (!sameMoneyAmount(payable, amount)) {
-        throwApi(
-          400,
-          'amount_mismatch',
-          `المبلغ غير مطابق. المبلغ الصحيح: ${payable} ريال`,
-        );
-      }
-      return;
-    }
-
-    if (type === 'order_commission') {
-      throwApi(
-        400,
-        'invalid_type',
-        'عمولة الطلب دفتر داخلي ولا تُبدأ من بوابة الدفع',
-      );
-    }
-
     if (type === 'butcher_order') {
       const order = await this.repo.findUnpaidButcherOrder(referenceId, userId);
       if (!order) {
@@ -582,7 +499,7 @@ export class PaymentsService
 
     const isDev = isNiSandboxMockMode();
     let checkoutUrl: string;
-    const appUrl = process.env.APP_URL ?? 'https://sarhsa.online';
+    const appUrl = publicAppUrl();
     const context =
       type === 'butcher_checkout'
         ? 'butcher_checkout'
@@ -604,7 +521,7 @@ export class PaymentsService
         merchantOrderReference: orderReference,
         amount,
         currency,
-        description: descriptionAr || description || 'سرح Payment',
+        description: descriptionAr || description || 'دفعة ملاحم سرح',
         redirectUrl,
         cancelUrl,
         firstName: contact?.displayName ?? contact?.arabicName ?? 'Customer',
@@ -630,7 +547,7 @@ export class PaymentsService
         merchantOrderReference: orderReference,
         amount,
         currency,
-        description: descriptionAr || description || 'سرح Payment',
+        description: descriptionAr || description || 'دفعة ملاحم سرح',
         redirectUrl,
         cancelUrl,
         firstName: contact?.displayName ?? contact?.arabicName ?? 'Customer',
@@ -710,75 +627,21 @@ export class PaymentsService
       referenceId,
       description,
       descriptionAr,
-      planId,
-      billingCycle,
-      saleAmount,
     } = dto;
 
-    if (type === 'subscription') {
-      if (!planId || !billingCycle) {
-        throwApi(400, 'validation_error', 'يجب تحديد الباقة ودورة الفوترة');
-      }
-      const audience = await this.resolveAudience(user.userId);
-      const normalizedPlan = normalizePlanSlug(planId);
-      const upgradable = this.plans.getUpgradablePlans(audience);
-      if (!upgradable.includes(normalizedPlan)) {
-        throwApi(400, 'invalid_plan', 'باقة غير صالحة للترقية');
-      }
-      const expectedAmount = this.plans.getPlanPrice(
-        normalizedPlan,
-        audience,
-        billingCycle as BillingCycle,
+    if (type !== 'butcher_order' && type !== 'butcher_checkout') {
+      throwApi(
+        400,
+        'unsupported_payment_type',
+        'نوع الدفع غير مدعوم في ملاحم سرح',
       );
-      if (!sameMoneyAmount(expectedAmount, amount)) {
-        throwApi(
-          400,
-          'amount_mismatch',
-          `المبلغ غير مطابق. المبلغ الصحيح: ${expectedAmount} ريال`,
-        );
-      }
     }
 
     if (!referenceId) throwApi(400, 'ref_required', 'معرّف المرجع مطلوب');
-    await this.checkReference(
-      user.userId,
-      type,
-      referenceId,
-      amount,
-      planId,
-      saleAmount,
-    );
+    await this.checkReference(user.userId, type, referenceId, amount);
 
-    const isListingFeePay =
-      type === 'fee' || type === 'listing_fee' || type === 'commission';
-    let storedReferenceId = referenceId;
-    let storedReferenceType = type as PaymentReferenceType;
-    let feeId: string | undefined;
-
-    if (isListingFeePay) {
-      const fee = await this.repo.findPendingFee(referenceId, user.userId);
-      if (!fee) {
-        throwApi(404, 'fee_not_found', 'الرسوم غير موجودة أو مسددة بالفعل');
-      }
-      const declared = parsePositiveMoneyAmount(saleAmount);
-      if (declared == null) {
-        throwApi(
-          400,
-          'invalid_sale_amount',
-          'أدخل مبلغ بيع صالحاً أكبر من صفر',
-        );
-      }
-      const payable = calculateListingFeeAmount(declared);
-      await this.repo.recordListingFeeSaleAmount(
-        fee.id,
-        user.userId,
-        declared,
-        payable,
-      );
-      storedReferenceId = fee.id;
-      storedReferenceType = 'listing_fee';
-      feeId = fee.id;
-    }
+    const storedReferenceId = referenceId;
+    const storedReferenceType = type as PaymentReferenceType;
 
     const orderReference = buildNIOrderReference(user.userId);
     const contact = await this.repo.findUserContact(user.userId);
@@ -787,10 +650,6 @@ export class PaymentsService
       type: storedReferenceType,
       ...(storedReferenceId ? { referenceId: storedReferenceId } : {}),
       userId: user.userId,
-      ...(saleAmount != null ? { saleAmount } : {}),
-      ...(type === 'subscription' && planId && billingCycle
-        ? { targetPlanId: planId, billingCycle }
-        : {}),
     };
 
     const pendingParams = {
@@ -804,8 +663,6 @@ export class PaymentsService
       metadata: paymentMetadata,
       referenceId: storedReferenceId,
       referenceType: storedReferenceType,
-      subscriptionId: type === 'subscription' ? referenceId : undefined,
-      feeId,
     };
 
     const txResult =
@@ -1055,24 +912,6 @@ export class PaymentsService
         );
         return;
       }
-      if (
-        type === 'subscription' &&
-        referenceId &&
-        storedMeta.subscriptionFulfilled === true
-      ) {
-        const sub = await this.repo.findSubscriptionForPayment(
-          referenceId,
-          userId,
-        );
-        if (sub) {
-          await this.subscriptionLifecycle.downgradeUser(
-            userId,
-            sub.planId,
-            sub.planAudience ?? (await this.resolveAudience(userId)),
-            'refund',
-          );
-        }
-      }
       // Reverse accrued butcher order commission ledger if the order payment refunds.
       if (type === 'butcher_order' && referenceId) {
         await this.repo.markOrderCommissionRefunded(referenceId, {
@@ -1092,7 +931,6 @@ export class PaymentsService
           });
         }
       }
-      await this.subscriptionCache.invalidate(userId);
       await this.notifications.notifyUser({
         userId,
         type: 'system',
@@ -1159,58 +997,8 @@ export class PaymentsService
       }
 
       if (fulfillment.processed) {
-        await this.subscriptionCache.invalidate(userId);
-
-        if (fulfillment.boost) {
-          await this.invalidateListingCaches(fulfillment.boost.listingId);
-        }
-        if (fulfillment.promotion) {
-          await this.invalidateListingCaches(fulfillment.promotion.listingId);
-        }
-
-        if (fulfillment.subscription) {
-          await this.subscriptionLifecycle.notifyRenewalSuccess(
-            userId,
-            fulfillment.subscription.targetPlanId,
-            payment.amount,
-            payment.currency,
-          );
-        } else if (fulfillment.butcherOrder) {
+        if (fulfillment.butcherOrder) {
           await this.notifyPaidButcherOrder(fulfillment.butcherOrder);
-        } else if (fulfillment.boost) {
-          const b = fulfillment.boost;
-          const boostCopy =
-            b.boostType === 'both'
-              ? {
-                  titleAr: '🚀 تم تثبيت وتمييز إعلانك',
-                  actionAr: 'مثبّت ومميز',
-                }
-              : b.boostType === 'featured'
-                ? { titleAr: '⭐ تم تمييز إعلانك', actionAr: 'مميز' }
-                : { titleAr: '📌 تم تثبيت إعلانك', actionAr: 'مثبّت' };
-          await this.notifications.notifyUser({
-            userId,
-            type: 'system',
-            titleAr: boostCopy.titleAr,
-            bodyAr: `إعلانك ${boostCopy.actionAr} حتى ${b.expiresAt.toLocaleDateString('ar-SA')}.`,
-            data: {
-              boostId: b.id,
-              listingId: b.listingId,
-              boostType: b.boostType,
-            },
-          });
-        } else if (type === 'commission') {
-          await this.notifications.notifyUser({
-            userId,
-            type: 'system',
-            titleAr: '✅ شكراً على دعمك لسرح',
-            bodyAr: `تم استلام عمولتك بمبلغ ${payment.amount} ${payment.currency}. رقم العملية: ${niTransactionId}`,
-            data: {
-              paymentId: payment.id,
-              transactionId: niTransactionId,
-              type: 'commission',
-            },
-          });
         } else {
           await this.notifications.notifyUser({
             userId,
@@ -1236,20 +1024,13 @@ export class PaymentsService
         return;
       }
 
-      if (type === 'subscription' && targetPlanId) {
-        await this.subscriptionLifecycle.notifyRenewalFailed(
-          userId,
-          targetPlanId,
-        );
-      } else {
-        await this.notifications.notifyUser({
-          userId,
-          type: 'system',
-          titleAr: '❌ فشل الدفع',
-          bodyAr: 'فشلت عملية الدفع. يرجى المحاولة مجدداً.',
-          data: { paymentId: payment.id },
-        });
-      }
+      await this.notifications.notifyUser({
+        userId,
+        type: 'system',
+        titleAr: '❌ فشل الدفع',
+        bodyAr: 'فشلت عملية الدفع. يرجى المحاولة مجدداً.',
+        data: { paymentId: payment.id },
+      });
 
       this.logger.warn(
         { paymentId: payment.id, eventType },
@@ -1528,32 +1309,7 @@ export class PaymentsService
         }
 
         if (fulfillment.processed) {
-          await this.subscriptionCache.invalidate(userId);
-
-          if (fulfillment.boost) {
-            await this.invalidateListingCaches(fulfillment.boost.listingId);
-            const b = fulfillment.boost;
-            const boostCopy =
-              b.boostType === 'both'
-                ? {
-                    titleAr: '🚀 تم تثبيت وتمييز إعلانك',
-                    actionAr: 'مثبّت ومميز',
-                  }
-                : b.boostType === 'featured'
-                  ? { titleAr: '⭐ تم تمييز إعلانك', actionAr: 'مميز' }
-                  : { titleAr: '📌 تم تثبيت إعلانك', actionAr: 'مثبّت' };
-            await this.notifications.notifyUser({
-              userId,
-              type: 'system',
-              titleAr: boostCopy.titleAr,
-              bodyAr: `إعلانك ${boostCopy.actionAr} حتى ${b.expiresAt.toLocaleDateString('ar-SA')}.`,
-              data: {
-                boostId: b.id,
-                listingId: b.listingId,
-                boostType: b.boostType,
-              },
-            });
-          } else if (fulfillment.butcherOrder) {
+          if (fulfillment.butcherOrder) {
             await this.notifyPaidButcherOrder(fulfillment.butcherOrder);
           } else {
             await this.notifications.notifyUser({
@@ -1586,19 +1342,6 @@ export class PaymentsService
                 status: 'pending',
               }
             : undefined,
-          boost: fulfillment.boost
-            ? {
-                boostType: fulfillment.boost.boostType,
-                expiresAt: fulfillment.boost.expiresAt.toISOString(),
-                listingId: fulfillment.boost.listingId,
-              }
-            : undefined,
-          promotion: fulfillment.promotion
-            ? {
-                expiresAt: fulfillment.promotion.expiresAt.toISOString(),
-                listingId: fulfillment.promotion.listingId,
-              }
-            : undefined,
         };
       }
 
@@ -1622,20 +1365,13 @@ export class PaymentsService
             ),
           };
         }
-        if (type === 'subscription' && targetPlanId) {
-          await this.subscriptionLifecycle.notifyRenewalFailed(
-            userId,
-            targetPlanId,
-          );
-        } else {
-          await this.notifications.notifyUser({
-            userId,
-            type: 'system',
-            titleAr: '❌ لم يتم الدفع',
-            bodyAr: 'لم تكتمل عملية الدفع. يرجى المحاولة مجدداً.',
-            data: { paymentId },
-          });
-        }
+        await this.notifications.notifyUser({
+          userId,
+          type: 'system',
+          titleAr: '❌ لم يتم الدفع',
+          bodyAr: 'لم تكتمل عملية الدفع. يرجى المحاولة مجدداً.',
+          data: { paymentId },
+        });
         this.logger.warn(
           { paymentId, orderRef, state },
           'Payment synced → failed',

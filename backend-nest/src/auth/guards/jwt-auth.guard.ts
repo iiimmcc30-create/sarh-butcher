@@ -58,7 +58,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
     try {
       const secret = process.env.JWT_SECRET!;
-      const payload = jwt.verify(token, secret) as JwtPayload;
+      const issuer = process.env.JWT_ISSUER || 'malahm-sarh';
+      const payload = jwt.verify(token, secret, { issuer }) as JwtPayload;
 
       const blacklisted = await this.sessions.get<boolean>(
         `blacklist:${token}`,

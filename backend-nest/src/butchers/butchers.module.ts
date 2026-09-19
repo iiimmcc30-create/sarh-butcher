@@ -6,16 +6,12 @@ import { OrderLifecycleService } from './services/order-lifecycle.service';
 import { OrderStateMachineService } from './services/order-state-machine.service';
 import { ButcherRankingService } from './services/butcher-ranking.service';
 import { UnpaidOrderExpiryService } from './services/unpaid-order-expiry.service';
+import { ButcherCommissionPolicy } from './services/butcher-commission.policy';
 import { GatewaySharedModule } from '../gateway/gateway-shared.module';
-import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { PaymentsModule } from '../payments/payments.module';
 
 @Module({
-  imports: [
-    GatewaySharedModule,
-    SubscriptionsModule,
-    forwardRef(() => PaymentsModule),
-  ],
+  imports: [GatewaySharedModule, forwardRef(() => PaymentsModule)],
   controllers: [ButchersController],
   providers: [
     ButchersService,
@@ -24,7 +20,12 @@ import { PaymentsModule } from '../payments/payments.module';
     OrderStateMachineService,
     ButcherRankingService,
     UnpaidOrderExpiryService,
+    ButcherCommissionPolicy,
   ],
-  exports: [ButcherRankingService, OrderLifecycleService],
+  exports: [
+    ButcherRankingService,
+    OrderLifecycleService,
+    ButcherCommissionPolicy,
+  ],
 })
 export class ButchersModule {}

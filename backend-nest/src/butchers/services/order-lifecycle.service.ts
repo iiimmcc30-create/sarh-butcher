@@ -4,7 +4,7 @@ import { AppNotificationsService } from '../../queue/services/app-notifications.
 import { SocketEmitService } from '../../gateway/services/socket-emit.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { throwApi } from '../../common/exceptions/api.exception';
-import { SubscriptionEntitlementService } from '../../subscriptions/services/subscription-entitlement.service';
+import { ButcherCommissionPolicy } from './butcher-commission.policy';
 import {
   BUTCHER_ORDER_COMMISSION_PERCENT,
   butcherOrderCommissionPaymentRef,
@@ -66,7 +66,7 @@ export class OrderLifecycleService {
     private readonly notifications: AppNotificationsService,
     private readonly sockets: SocketEmitService,
     private readonly ranking: ButcherRankingService,
-    private readonly entitlements: SubscriptionEntitlementService,
+    private readonly commissionPolicy: ButcherCommissionPolicy,
   ) {}
 
   private statusMsg(status: OrderStatus): string {
@@ -216,13 +216,12 @@ export class OrderLifecycleService {
     });
     if (existing) return;
 
-    const permissions = await this.entitlements.getPermissionsForUser(
+    const exempt = await this.commissionPolicy.isExemptForUser(
       locked.butcherUserId,
     );
-    const calc = calculateOrderCommission(
-      Number(locked.totalPrice),
-      permissions,
-    );
+    const calc = calculateOrderCommission(Number(locked.totalPrice), {
+      exempt,
+    });
     const paymentOrderId = butcherOrderCommissionPaymentRef(locked.id);
 
     try {

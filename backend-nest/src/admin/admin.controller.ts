@@ -54,32 +54,6 @@ export class AdminController {
 
   @Roles(...STAFF)
   @RateLimit('api')
-  @Get('listing-fee-compliance')
-  @HttpCode(HttpStatus.OK)
-  async listingFeeCompliance() {
-    return successResponse(await this.admin.listListingFeeCompliance());
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Post('users/:id/listing-fee-enforcement')
-  @HttpCode(HttpStatus.OK)
-  async listingFeeEnforcement(
-    @Param('id') id: string,
-    @CurrentUser() actor: JwtPayload,
-    @Body() body: { reason?: string },
-  ) {
-    return successResponse(
-      await this.admin.closeAccountForUnpaidListingFees(
-        id,
-        actor,
-        body.reason ?? '',
-      ),
-    );
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
   @Get('dashboard/stats')
   @HttpCode(HttpStatus.OK)
   async dashboardStats() {
@@ -124,64 +98,6 @@ export class AdminController {
     return successResponse(await this.admin.deleteUser(id, user));
   }
 
-  // ─── Posts ──────────────────────────────────────────────────────────────────
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Get('posts')
-  @HttpCode(HttpStatus.OK)
-  async listPosts(@Query() query: Record<string, unknown>) {
-    return successResponse(await this.admin.listPosts(query));
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Patch('posts/:id')
-  @HttpCode(HttpStatus.OK)
-  async updatePost(
-    @Param('id') id: string,
-    @Body() body: Record<string, unknown>,
-  ) {
-    return successResponse(await this.admin.updatePost(id, body));
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Delete('posts/:id')
-  @HttpCode(HttpStatus.OK)
-  async deletePost(@Param('id') id: string) {
-    return successResponse(await this.admin.deletePost(id));
-  }
-
-  // ─── Listings ───────────────────────────────────────────────────────────────
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Get('listings')
-  @HttpCode(HttpStatus.OK)
-  async listListings(@Query() query: Record<string, unknown>) {
-    return successResponse(await this.admin.listListings(query));
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Patch('listings/:id')
-  @HttpCode(HttpStatus.OK)
-  async updateListing(
-    @Param('id') id: string,
-    @Body() body: Record<string, unknown>,
-  ) {
-    return successResponse(await this.admin.updateListing(id, body));
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Delete('listings/:id')
-  @HttpCode(HttpStatus.OK)
-  async deleteListing(@Param('id') id: string) {
-    return successResponse(await this.admin.deleteListing(id));
-  }
-
   // ─── Reports / Tickets ──────────────────────────────────────────────────────
 
   @Roles(...STAFF)
@@ -217,32 +133,6 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async deleteReport(@Param('id') id: string) {
     return successResponse(await this.admin.deleteReport(id));
-  }
-
-  // ─── Livestreams ────────────────────────────────────────────────────────────
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Get('livestreams')
-  @HttpCode(HttpStatus.OK)
-  async listLiveStreams(@Query() query: Record<string, unknown>) {
-    return successResponse(await this.admin.listLiveStreams(query));
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Post('livestreams/:id')
-  @HttpCode(HttpStatus.OK)
-  async stopLiveStream(@Param('id') id: string) {
-    return successResponse(await this.admin.stopLiveStream(id));
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Delete('livestreams/:id')
-  @HttpCode(HttpStatus.OK)
-  async deleteLiveStream(@Param('id') id: string) {
-    return successResponse(await this.admin.deleteLiveStream(id));
   }
 
   // ─── Butchers ───────────────────────────────────────────────────────────────
@@ -314,98 +204,6 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   async updateSetting(@Body() body: Record<string, unknown>) {
     return successResponse(await this.admin.updateSetting(body));
-  }
-
-  // ─── Content Sections ───────────────────────────────────────────────────────
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Get('sections')
-  @HttpCode(HttpStatus.OK)
-  async listSections() {
-    return successResponse(await this.admin.listSections());
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Post('sections')
-  @HttpCode(HttpStatus.CREATED)
-  async createSection(
-    @Body() body: Record<string, unknown>,
-    @CurrentUser() user: JwtPayload,
-  ) {
-    return successResponse(await this.admin.createSection(body, user.username));
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Patch('sections/:id')
-  @HttpCode(HttpStatus.OK)
-  async updateSection(
-    @Param('id') id: string,
-    @Body() body: Record<string, unknown>,
-    @CurrentUser() user: JwtPayload,
-  ) {
-    return successResponse(
-      await this.admin.updateSection(id, body, user.username),
-    );
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Post('sections/:id/publish')
-  @HttpCode(HttpStatus.OK)
-  async publishSection(
-    @Param('id') id: string,
-    @Body() body: Record<string, unknown>,
-    @CurrentUser() user: JwtPayload,
-  ) {
-    return successResponse(
-      await this.admin.publishSection(id, body ?? {}, user.username),
-    );
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Post('sections/:id/unpublish')
-  @HttpCode(HttpStatus.OK)
-  async unpublishSection(
-    @Param('id') id: string,
-    @CurrentUser() user: JwtPayload,
-  ) {
-    return successResponse(
-      await this.admin.unpublishSection(id, user.username),
-    );
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Get('sections/:id/versions')
-  @HttpCode(HttpStatus.OK)
-  async listSectionVersions(@Param('id') id: string) {
-    return successResponse(await this.admin.listSectionVersions(id));
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Post('sections/:id/restore/:versionId')
-  @HttpCode(HttpStatus.OK)
-  async restoreSectionVersion(
-    @Param('id') id: string,
-    @Param('versionId') versionId: string,
-    @CurrentUser() user: JwtPayload,
-  ) {
-    return successResponse(
-      await this.admin.restoreSectionVersion(id, versionId, user.username),
-    );
-  }
-
-  @Roles(...STAFF)
-  @RateLimit('api')
-  @Delete('sections/:id')
-  @HttpCode(HttpStatus.OK)
-  async deleteSection(@Param('id') id: string) {
-    return successResponse(await this.admin.deleteSection(id));
   }
 
   // ─── Butcher Applications ───────────────────────────────────────────────────

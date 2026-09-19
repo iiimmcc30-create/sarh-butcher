@@ -23,8 +23,8 @@ export const QUEUE_NAMES = {
   NOTIFICATIONS: `${Q}notifications`,
   EMAILS: `${Q}emails`,
   PUSH: `${Q}push-notifications`,
-  // SARH listing fee-checks are not registered for butcher runtime.
-  FEE_CHECKS: `${Q}fee-checks`,
   IMAGE_PROCESSING: `${Q}image-processing`,
+  // Leftover names for on-disk SARH processors that are not registered.
+  FEE_CHECKS: `${Q}fee-checks`,
   SUBSCRIPTIONS: `${Q}subscriptions`,
 } as const;
