@@ -51,8 +51,12 @@ export async function ensureApiReachable(): Promise<string> {
     return API_BASE;
   }
 
-  if (!API_BASE.includes('onrender.com') && (await probeApiHealth(PRODUCTION_API))) {
-    console.warn('[سرح] Local API unreachable — switched to production (Render)');
+  if (
+    PRODUCTION_API !== API_BASE &&
+    !/sarhsa\.online\/api(?!\/butcher)/.test(PRODUCTION_API) &&
+    (await probeApiHealth(PRODUCTION_API))
+  ) {
+    console.warn('[ملاحم سرح] Local API unreachable — switched to configured butcher API');
     API_BASE = PRODUCTION_API;
   }
 

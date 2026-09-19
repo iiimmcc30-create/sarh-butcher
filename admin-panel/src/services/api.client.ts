@@ -3,12 +3,24 @@ import { withAdminBase } from '@/constants/adminBasePath';
 
 const SERVER_API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
-/** Browser uses same-origin /api (proxied by next.config rewrites) to avoid CORS. */
+function browserApiBase(): string {
+  const explicit = process.env.NEXT_PUBLIC_BROWSER_API_BASE?.trim();
+  if (explicit) return explicit.replace(/\/$/, '');
+  if (
+    /^https?:\/\//i.test(SERVER_API_URL) &&
+    !/localhost|127\.0\.0\.1/i.test(SERVER_API_URL)
+  ) {
+    return `${SERVER_API_URL.replace(/\/$/, '')}/api`;
+  }
+  return '/api';
+}
+
+/** Browser uses /api locally (Next rewrite) or /api/butcher/api on the shared host. */
 export const API_URL =
   typeof window !== 'undefined' ? '' : SERVER_API_URL;
 
 export const apiClient = axios.create({
-  baseURL: typeof window !== 'undefined' ? '/api' : `${SERVER_API_URL}/api`,
+  baseURL: typeof window !== 'undefined' ? browserApiBase() : `${SERVER_API_URL.replace(/\/$/, '')}/api`,
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' },
 });

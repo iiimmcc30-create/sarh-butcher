@@ -56,6 +56,7 @@ services:
       APP_DEEP_LINK_SCHEME: ${APP_DEEP_LINK_SCHEME:-malahm}
       APP_ANDROID_PACKAGE: ${APP_ANDROID_PACKAGE:-com.sarh.butcher}
       CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-sarh-butcher}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3001}
     depends_on:
       postgres:
         condition: service_healthy
@@ -155,9 +156,12 @@ services:
       - '80:80'
     volumes:
       - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/butcher-location.conf:/etc/nginx/butcher-location.conf:ro
-      - ./nginx/admin-location.conf:/etc/nginx/admin-location.conf:ro
-      - ./nginx/payment-bridge.conf:/etc/nginx/payment-bridge.conf:ro
+      - ./nginx/butcher-location.conf:/etc/nginx/includes/butcher-location.conf:ro
+      - ./nginx/admin-location.conf:/etc/nginx/includes/admin-location.conf:ro
+      - ./nginx/payment-bridge.conf:/etc/nginx/includes/payment-bridge.conf:ro
+      - ./nginx/butcher-api-location.conf:/etc/nginx/includes/butcher-api-location.conf:ro
+      - ./nginx/web-location.conf:/etc/nginx/includes/web-location.conf:ro
+      - ./nginx/ssl-redirect.conf:/etc/nginx/includes/ssl-redirect.conf:ro
     networks:
       - butcher_internal
 

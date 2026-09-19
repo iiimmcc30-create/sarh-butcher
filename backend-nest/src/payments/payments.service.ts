@@ -31,9 +31,10 @@ import { IntegrationCheckoutService } from '../integrations/services/integration
 import { redactSensitive } from '../integrations/utils/redact.util';
 import { SocketEmitService } from '../gateway/services/socket-emit.service';
 import { Sentry } from '../shared/lib/sentry';
+import { publicSiteUrl } from '../lib/public-urls';
 
 function publicAppUrl(): string {
-  return (process.env.APP_URL || 'http://localhost:3001').replace(/\/$/, '');
+  return publicSiteUrl();
 }
 
 function buildNIOrderReference(userId: string): string {

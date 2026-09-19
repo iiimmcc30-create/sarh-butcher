@@ -12,7 +12,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "http://localhost:3001",
-        "EXPO_PUBLIC_SOCKET_URL": "http://localhost:3002"
+        "EXPO_PUBLIC_SOCKET_URL": "http://localhost:3002",
+        "EXPO_PUBLIC_SOCKET_PATH": "/socket.io"
       }
     },
     "preview": {
@@ -22,7 +23,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "http://localhost:3001",
-        "EXPO_PUBLIC_SOCKET_URL": "http://localhost:3002"
+        "EXPO_PUBLIC_SOCKET_URL": "http://localhost:3002",
+        "EXPO_PUBLIC_SOCKET_PATH": "/socket.io"
       }
     },
     "production": {
@@ -31,8 +33,9 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://localhost:3001",
-        "EXPO_PUBLIC_SOCKET_URL": "http://localhost:3002"
+        "EXPO_PUBLIC_API_URL": "https://sarhsa.online/api/butcher",
+        "EXPO_PUBLIC_SOCKET_URL": "https://sarhsa.online",
+        "EXPO_PUBLIC_SOCKET_PATH": "/api/butcher/socket.io"
       }
     }
   },

@@ -6,6 +6,7 @@ import { RedisCacheService } from '../../redis/services/redis-cache.service';
 import { DaftraService } from '../../integrations/daftra/daftra.service';
 import { cronCleanupAuthHeader } from '../../admin/lib/cron-auth';
 import { butcherRedisKey } from '../../redis/redis-key';
+import { publicApiBase } from '../../lib/public-urls';
 
 export const DAFTRA_PRODUCT_SYNC_INTERVAL_MS = 10 * 60 * 1000;
 export const DAFTRA_PRODUCT_SYNC_LOCK_TTL_SEC = 9 * 60;
@@ -80,10 +81,7 @@ export class WorkerCronService implements OnModuleDestroy {
   }
 
   private async runDbCleanupCron(): Promise<void> {
-    const appUrl = (process.env.APP_URL || 'http://localhost:3001').replace(
-      /\/$/,
-      '',
-    );
+    const appUrl = publicApiBase();
     if (
       process.env.NODE_ENV === 'production' &&
       /localhost|127\.0\.0\.1/i.test(appUrl)
@@ -235,7 +233,7 @@ export class WorkerCronService implements OnModuleDestroy {
     ].filter((url): url is string => Boolean(url?.trim()));
     if (fromEnv.length) return fromEnv;
     if (process.env.NODE_ENV !== 'production') return [];
-    const appUrl = (process.env.APP_URL || '').replace(/\/$/, '');
+    const appUrl = publicApiBase();
     if (!appUrl) return [];
     return [`${appUrl}/api/health`, `${appUrl}/health`];
   }

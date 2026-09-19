@@ -5,15 +5,27 @@ const SERVER_API_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://127.0.0.1:300
   .trim()
   .replace(/^['"]|['"]$/g, '');
 
+function browserApiBase(): string {
+  const explicit = process.env.NEXT_PUBLIC_BROWSER_API_BASE?.trim();
+  if (explicit) return explicit.replace(/\/$/, '');
+  if (
+    /^https?:\/\//i.test(SERVER_API_URL) &&
+    !/localhost|127\.0\.0\.1/i.test(SERVER_API_URL)
+  ) {
+    return `${SERVER_API_URL.replace(/\/$/, '')}/api`;
+  }
+  return '/api';
+}
+
 export const ACCESS_TOKEN_KEY = 'butcher_access_token';
 export const REFRESH_TOKEN_KEY = 'butcher_refresh_token';
 export const USER_KEY = 'butcher_user';
 export const BUTCHER_KEY = 'butcher_profile';
 export const SESSION_COOKIE = 'butcher_token';
 
-/** Browser uses same-origin /api (proxied by next.config rewrites) to avoid CORS. */
+/** Browser uses /api locally (Next rewrite) or /api/butcher/api on the shared host. */
 export const apiClient = axios.create({
-  baseURL: typeof window !== 'undefined' ? '/api' : `${SERVER_API_URL}/api`,
+  baseURL: typeof window !== 'undefined' ? browserApiBase() : `${SERVER_API_URL.replace(/\/$/, '')}/api`,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',

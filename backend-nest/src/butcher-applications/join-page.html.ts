@@ -145,7 +145,19 @@ const MARK = `<svg class="mark" viewBox="0 0 611 417" aria-hidden="true">
   <path fill="#F4F7F9" d="${DIAMOND}"/>
 </svg>`;
 
-export function renderButcherJoinPage(): string {
+export function joinApiPrefix(env: NodeJS.ProcessEnv = process.env): string {
+  const pub = env.PUBLIC_API_URL?.trim();
+  if (!pub) return '/api';
+  try {
+    const pathname = new URL(pub).pathname.replace(/\/$/, '');
+    return pathname ? `${pathname}/api` : '/api';
+  } catch {
+    return '/api';
+  }
+}
+
+export function renderButcherJoinPage(apiPrefix = joinApiPrefix()): string {
+  const api = escapeJoinHtml(apiPrefix.replace(/\/$/, ''));
   const body = `
     <section class="hero">
       ${MARK}
@@ -377,7 +389,7 @@ export function renderButcherJoinPage(): string {
         else window.addEventListener('load', initMap);
         document.getElementById('send-otp').onclick = function () {
           msg('');
-          fetch('/api/auth/send-otp', {
+          fetch('${api}/auth/send-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: fullPhone(), channel: 'sms' })
@@ -389,7 +401,7 @@ export function renderButcherJoinPage(): string {
         };
         document.getElementById('verify-otp').onclick = function () {
           msg('');
-          fetch('/api/auth/verify-otp', {
+          fetch('${api}/auth/verify-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: fullPhone(), code: document.getElementById('otp').value, purpose: 'join' })
@@ -480,7 +492,7 @@ export function renderButcherJoinPage(): string {
           if (other) form.append('other', other);
           document.getElementById('submit').disabled = true;
           document.getElementById('upload-status').textContent = 'جاري رفع المستندات وإرسال الطلب...';
-          fetch('/api/butcher-applications/join', { method: 'POST', body: form })
+          fetch('${api}/butcher-applications/join', { method: 'POST', body: form })
             .then(function (r) { return r.json().then(function (j) { return { r: r, j: j }; }); })
             .then(function (x) {
               document.getElementById('submit').disabled = false;

@@ -1,5 +1,6 @@
 import {
   escapeJoinHtml,
+  joinApiPrefix,
   renderButcherJoinPage,
   renderButcherJoinSuccessPage,
 } from '../join-page.html';
@@ -14,6 +15,10 @@ describe('public butcher join HTML', () => {
     expect(html).toContain('/api/auth/send-otp');
     expect(html).toContain('/api/auth/verify-otp');
     expect(html).toContain('/api/butcher-applications/join');
+    expect(joinApiPrefix({})).toBe('/api');
+    expect(
+      joinApiPrefix({ PUBLIC_API_URL: 'https://sarhsa.online/api/butcher' }),
+    ).toBe('/api/butcher/api');
     expect(html).toContain("purpose: 'join'");
     expect(html).toContain('/butcher/login');
     expect(html).toContain('/join/success');
