@@ -16,9 +16,14 @@ ANDROID_RES = ROOT / "android" / "app" / "src" / "main" / "res"
 IOS_SET = ASSETS / "images" / "iOS" / "AppIcon.appiconset"
 SOURCE = ASSETS / "malahm-icon-source.jpg"
 
-# Sampled from the source interior (not the white wave).
-BRAND = (88, 35, 41, 255)
-BRAND_HEX = "#582329"
+# Original maroon emblem, now used for the two waves + star.
+MAROON = (88, 35, 41, 255)
+MAROON_HEX = "#582329"
+# Ivory plate / OS mask / splash background.
+IVORY = (246, 240, 230, 255)
+IVORY_HEX = "#F6F0E6"
+BRAND = IVORY
+BRAND_HEX = IVORY_HEX
 
 DENSITIES = {
     "mipmap-mdpi": 48,
@@ -95,27 +100,71 @@ def crop_icon(src: Image.Image) -> Image.Image:
     # Any leftover sparkle that survived the crop is painted brand.
     if crop_body.shape[:2] == rgba.shape[:2]:
         sparkle = ~crop_body
-        rgba[sparkle, 0] = BRAND[0]
-        rgba[sparkle, 1] = BRAND[1]
-        rgba[sparkle, 2] = BRAND[2]
+        rgba[sparkle, 0] = MAROON[0]
+        rgba[sparkle, 1] = MAROON[1]
+        rgba[sparkle, 2] = MAROON[2]
         rgba[sparkle, 3] = 255
         cropped = Image.fromarray(rgba, "RGBA")
     return cropped
 
 
+def dilate_mask(mask: np.ndarray, radius: int) -> np.ndarray:
+    if radius <= 0:
+        return mask
+    kernel = radius * 2 + 1
+    img = Image.fromarray(mask.astype(np.uint8) * 255)
+    return np.asarray(img.filter(ImageFilter.MaxFilter(kernel))) > 0
+
+
+def swap_plate_and_emblem(img: Image.Image) -> Image.Image:
+    """Keep the original 3D form; ivory plate, maroon waves + star."""
+    arr = np.asarray(img.convert("RGBA")).copy()
+    rgb = arr[..., :3].astype(np.float32)
+    red, green, blue = rgb[..., 0], rgb[..., 1], rgb[..., 2]
+    lum = 0.299 * red + 0.587 * green + 0.114 * blue
+    sat = rgb.max(axis=2) - rgb.min(axis=2)
+    is_star = (green > red + 12) & (green > blue + 12)
+    is_wave = (lum >= 150) | ((sat < 40) & (lum > 140))
+    # Grow only from the logo so the 3D plate bevel stays ivory.
+    radius = max(1, int(round(arr.shape[0] / 350)))
+    is_emblem = dilate_mask(is_star | is_wave, radius)
+    is_plate = ~is_emblem
+
+    plate_t = np.clip((lum - 28.0) / 50.0, 0.0, 1.0)[..., None]
+    ivory_lo = np.array([230.0, 221.0, 208.0], dtype=np.float32)
+    ivory_hi = np.array([252.0, 247.0, 238.0], dtype=np.float32)
+    ivory = ivory_lo + (ivory_hi - ivory_lo) * plate_t
+
+    # Waves are nearly flat white in the source; keep them on brand maroon.
+    # Darker emblem bits (star facets, underside) go slightly deeper.
+    emblem_t = np.clip((lum - 30.0) / 220.0, 0.0, 1.0)[..., None]
+    maroon_lo = np.array([68.0, 24.0, 30.0], dtype=np.float32)
+    maroon_mid = np.array([88.0, 35.0, 41.0], dtype=np.float32)
+    maroon_hi = np.array([102.0, 43.0, 49.0], dtype=np.float32)
+    maroon = np.where(
+        emblem_t < 0.55,
+        maroon_lo + (maroon_mid - maroon_lo) * (emblem_t / 0.55),
+        maroon_mid + (maroon_hi - maroon_mid) * ((emblem_t - 0.55) / 0.45),
+    )
+
+    swapped = np.where(is_emblem[..., None], maroon, ivory)
+    arr[..., :3] = np.clip(swapped, 0, 255).astype(np.uint8)
+    arr[..., 3] = 255
+    return Image.fromarray(arr, "RGBA")
+
+
 def full_bleed(cropped: Image.Image, size: int) -> Image.Image:
-    """Square icon with maroon corners so OS masks never show black."""
-    canvas = Image.new("RGBA", (size, size), BRAND)
+    """Square icon with ivory corners so OS masks never show black."""
+    canvas = Image.new("RGBA", (size, size), IVORY)
     fitted = cropped.resize((size, size), Image.Resampling.LANCZOS)
-    # Replace near-black padding (sparkles / outside the squircle) with brand.
     arr = np.asarray(fitted).copy()
     lum = arr[..., :3].mean(axis=2)
     dark = lum < 18
-    arr[dark, 0] = BRAND[0]
-    arr[dark, 1] = BRAND[1]
-    arr[dark, 2] = BRAND[2]
+    arr[dark, 0] = MAROON[0]
+    arr[dark, 1] = MAROON[1]
+    arr[dark, 2] = MAROON[2]
     arr[dark, 3] = 255
-    filled = Image.fromarray(arr, "RGBA")
+    filled = swap_plate_and_emblem(Image.fromarray(arr, "RGBA"))
     canvas.paste(filled, (0, 0), filled)
     return canvas
 
@@ -151,8 +200,8 @@ def splash_logo(bleed: Image.Image, size: int) -> Image.Image:
 def notification_glyph(bleed: Image.Image, size: int) -> Image.Image:
     small = bleed.resize((size, size), Image.Resampling.LANCZOS).convert("L")
     arr = np.asarray(small)
-    # Keep the bright wave / diamond as a white silhouette.
-    alpha = np.where(arr > 140, 255, 0).astype("uint8")
+    # After the color swap the waves + star are the dark maroon mark.
+    alpha = np.where(arr < 140, 255, 0).astype("uint8")
     out = np.zeros((size, size, 4), dtype=np.uint8)
     out[..., 0:3] = 255
     out[..., 3] = alpha
@@ -207,7 +256,7 @@ def main() -> None:
         save_png(splash_logo(bleed_1024, size), ANDROID_RES / folder / "splashscreen_logo.png")
         save_png(notification_glyph(bleed_1024, max(24, size // 12)), ANDROID_RES / folder / "notification_icon.png")
 
-    print(f"Applied ملاحم سرح icon. Brand {BRAND_HEX}")
+    print(f"Applied ملاحم سرح icon. Plate {IVORY_HEX} / emblem {MAROON_HEX}")
 
 
 if __name__ == "__main__":

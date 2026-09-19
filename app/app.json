@@ -33,7 +33,7 @@
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#582329"
+        "backgroundColor": "#F6F0E6"
       },
       "edgeToEdgeEnabled": true
     },
@@ -51,12 +51,12 @@
           "image": "./assets/images/splash-circle.png",
           "imageWidth": 280,
           "resizeMode": "contain",
-          "backgroundColor": "#582329",
+          "backgroundColor": "#F6F0E6",
           "dark": {
             "image": "./assets/images/splash-circle.png",
             "imageWidth": 280,
             "resizeMode": "contain",
-            "backgroundColor": "#582329"
+            "backgroundColor": "#F6F0E6"
           }
         }
       ],

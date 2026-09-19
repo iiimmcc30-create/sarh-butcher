@@ -14,7 +14,7 @@ ANDROID_RES = ROOT / "android" / "app" / "src" / "main" / "res"
 # Official ملاحم سرح emblem. Do not restore the leftover SARH/SAFAT source.
 MASTER_SOURCE = ASSETS / "malahm-icon-source.jpg"
 
-BRAND_BG = (88, 35, 41, 255)  # #582329 — matches adaptive + splash background
+BRAND_BG = (246, 240, 230, 255)  # #F6F0E6 — ivory plate / splash background
 LAUNCHER_EMBLEM_SCALE = 1.0
 ADAPTIVE_EMBLEM_SCALE = 0.98
 CIRCLE_INSET = 0.012
