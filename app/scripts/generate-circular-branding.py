@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate circular logo + launcher assets aligned with the SAFAT brand."""
+"""Legacy branding generator. Delegates to apply-malahm-icon.py."""
 
 from __future__ import annotations
 
@@ -11,10 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 ASSETS = ROOT / "assets" / "images"
 ANDROID_SRC = ASSETS / "Android"
 ANDROID_RES = ROOT / "android" / "app" / "src" / "main" / "res"
-# Official circular SAFAT emblem (green · white · black).
-MASTER_SOURCE = ASSETS / "ايقونه.png"
+# Official ملاحم سرح emblem. Do not restore the leftover SARH/SAFAT source.
+MASTER_SOURCE = ASSETS / "malahm-icon-source.jpg"
 
-BRAND_BG = (255, 255, 255, 255)  # #FFFFFF — matches splash + app background
+BRAND_BG = (88, 35, 41, 255)  # #582329 — matches adaptive + splash background
 LAUNCHER_EMBLEM_SCALE = 1.0
 ADAPTIVE_EMBLEM_SCALE = 0.98
 CIRCLE_INSET = 0.012
@@ -96,6 +96,12 @@ def save_png(img: Image.Image, path: Path) -> None:
 
 
 def main() -> None:
+    apply = ROOT / "scripts" / "apply-malahm-icon.py"
+    if apply.exists():
+        raise SystemExit(
+            "Use app/scripts/apply-malahm-icon.py — this script would flatten the "
+            "official ملاحم سرح icon into the old circular SAFAT pipeline."
+        )
     if not MASTER_SOURCE.exists():
         raise FileNotFoundError(MASTER_SOURCE)
 
