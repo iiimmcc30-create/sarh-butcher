@@ -52,7 +52,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: '6379'
       REDIS_ENABLED: 'true'
-      REDIS_KEY_PREFIX: butcherapp:
+      REDIS_KEY_PREFIX: 'butcherapp:'
       APP_DEEP_LINK_SCHEME: ${APP_DEEP_LINK_SCHEME:-malahm}
       APP_ANDROID_PACKAGE: ${APP_ANDROID_PACKAGE:-com.sarh.butcher}
       CLOUDINARY_FOLDER: ${CLOUDINARY_FOLDER:-sarh-butcher}
@@ -82,7 +82,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: '6379'
       REDIS_ENABLED: 'true'
-      REDIS_KEY_PREFIX: butcherapp:
+      REDIS_KEY_PREFIX: 'butcherapp:'
     depends_on:
       postgres:
         condition: service_healthy
@@ -106,7 +106,7 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: '6379'
       REDIS_ENABLED: 'true'
-      REDIS_KEY_PREFIX: butcherapp:
+      REDIS_KEY_PREFIX: 'butcherapp:'
     depends_on:
       postgres:
         condition: service_healthy
